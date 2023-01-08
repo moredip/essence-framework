@@ -1,4 +1,5 @@
 import * as express from 'express'
+import logger from './logger'
 import { createRouter } from './router'
 
 export async function createServer(port = 3553) {
@@ -7,7 +8,7 @@ export async function createServer(port = 3553) {
 
   async function startServer() {
     app.listen(port, () => {
-      console.log(`Essence started on port ${port}`)
+      logger.info(`Essence started on port ${port}`)
     })
   }
 

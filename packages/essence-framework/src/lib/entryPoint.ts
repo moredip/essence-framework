@@ -1,12 +1,8 @@
-import * as walk from 'walkdir'
+import { autoDiscover } from './autoDiscovery'
+import logger from './logger'
 
 export default async function essence(apiPath: string) {
-  console.log(`booting server for ${apiPath}...`)
+  logger.debug(`booting server for ${apiPath}...`)
 
-  const apiFiles = await walk.async(apiPath)
-
-  apiFiles.forEach((file) => {
-    console.log(`building route for ${file}...`)
-    // const actionHandler = import(file)
-  })
+  autoDiscover(apiPath)
 }

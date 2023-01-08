@@ -6,7 +6,7 @@ import { ActionHandler, EssenceRequest } from './types'
 export function wrapActionHandler(actionHandler: ActionHandler) {
   function expressHandler(req: Request, res: Response) {
     const essenceRequest: EssenceRequest = {
-      params: {},
+      params: req.params,
     }
     actionHandler(essenceRequest).then((actionOutput: string) => {
       res.end(actionOutput)
