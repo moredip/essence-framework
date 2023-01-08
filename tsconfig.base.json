@@ -14,7 +14,9 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "essence-framework": ["packages/essence-framework/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }
