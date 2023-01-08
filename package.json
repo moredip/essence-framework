@@ -26,6 +26,8 @@
     "typescript": "~4.8.2"
   },
   "dependencies": {
-    "tslib": "^2.3.0"
+    "express": "^4.18.2",
+    "tslib": "^2.3.0",
+    "walkdir": "^0.4.1"
   }
 }

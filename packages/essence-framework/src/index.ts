@@ -1,4 +1,4 @@
-import essence from './lib/entryPoint'
+// import essence from './lib/entryPoint'
+import { createServer } from './lib/server'
 
-export default essence
-export { essence }
+export { createServer }

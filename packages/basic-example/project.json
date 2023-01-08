@@ -13,7 +13,7 @@
         "outputPath": "dist/packages/basic-example",
         "main": "packages/basic-example/src/main.ts",
         "tsConfig": "packages/basic-example/tsconfig.app.json",
-        "assets": []
+        "assets": ["packages/basic-example/src/api"]
       },
       "configurations": {
         "production": {

@@ -1,3 +1,3 @@
-export default async function helloWorld() {
-  return 'hello, world';
+export async function get() {
+  return 'hello, world'
 }
