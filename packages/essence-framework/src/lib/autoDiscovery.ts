@@ -1,11 +1,9 @@
 import * as path from 'path'
 import * as walk from 'walkdir'
 import logger from './logger'
+import { PathActions } from './types'
 
-export async function autoDiscover(
-  apiRootPath: string,
-  importer: any = () => {}
-) {
+export async function autoDiscover(apiRootPath: string) {
   logger.info('root for action handlers: ' + apiRootPath)
   const handlerPaths = await walk.async(apiRootPath, { return_object: true })
 
@@ -14,17 +12,23 @@ export async function autoDiscover(
       continue
     }
     logger.debug('processing: ' + handlerPath)
+    const routePath = loppedPath(apiRootPath, handlerPath)
+    logger.debug({ routePath })
 
     const importPath = toImportPath(handlerPath)
 
     logger.debug(`auto-discovering ${importPath}...`)
 
-    console.log('importing...')
-    const actionHandler = await importer(/* webpackIgnore: true */ importPath)
-
-    // TODO: figure out what this is supposed to be returning
-    console.log('imported: ', JSON.stringify(actionHandler))
+    const importedActions = await import(importPath)
+    const actions = normalizeActions(importedActions)
+    console.log(actions)
   }
+}
+
+function normalizeActions(importedActions: any): PathActions {
+  const post = importedActions.post || null
+  const get = importedActions.get || importedActions.default || null
+  return { get, post }
 }
 
 function toImportPath(realPath: string) {
@@ -34,4 +38,17 @@ function toImportPath(realPath: string) {
   // } else {
   return parsedPath.dir + path.sep + parsedPath.base
   // }
+}
+
+function loppedPath(basePath: string, endPath: string) {
+  // TODO: make this robust and good
+
+  const basePathComponents = basePath.split(path.sep)
+  const endPathComponents = endPath.split(path.sep)
+
+  const loppedComponents = endPathComponents.slice(
+    basePathComponents.length,
+    -1
+  )
+  return path.sep + loppedComponents.join(path.sep)
 }

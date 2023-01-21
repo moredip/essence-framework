@@ -6,12 +6,7 @@ export default function createRunner(targetDir: string) {
   logger.debug(`running essence against ${targetDir}...`)
 
   async function run() {
-    function r(path: string) {
-      console.log('being asked to IMPORT:', path)
-      debugger
-      return require(path)
-    }
-    await autoDiscover(path.resolve(targetDir, 'api'), r)
+    await autoDiscover(path.resolve(targetDir, 'api'))
   }
 
   return {
