@@ -1,27 +1,31 @@
 import * as path from 'path'
+import { parse } from 'path'
 import * as walk from 'walkdir'
 import logger from './logger'
+import { RegisterPathActionsFn } from './router'
 import { PathActions } from './types'
 
-export async function autoDiscover(apiRootPath: string) {
+export async function autoDiscover(
+  apiRootPath: string,
+  registerPathActions: RegisterPathActionsFn
+) {
   logger.info('root for action handlers: ' + apiRootPath)
+  const routePath = routePathWithBase(apiRootPath)
   const handlerPaths = await walk.async(apiRootPath, { return_object: true })
 
   for (const [handlerPath, stats] of Object.entries(handlerPaths)) {
     if (!stats.isFile()) {
       continue
     }
-    logger.debug('processing: ' + handlerPath)
-    const routePath = loppedPath(apiRootPath, handlerPath)
-    logger.debug({ routePath })
+    logger.debug('handlerPath: ' + handlerPath)
+    const route = routePath(handlerPath)
+    logger.debug('route: ' + route)
 
-    const importPath = toImportPath(handlerPath)
-
-    logger.debug(`auto-discovering ${importPath}...`)
-
-    const importedActions = await import(importPath)
+    const importedActions = await import(handlerPath)
     const actions = normalizeActions(importedActions)
-    console.log(actions)
+    // console.log(actions)
+
+    registerPathActions(actions, route)
   }
 }
 
@@ -31,24 +35,27 @@ function normalizeActions(importedActions: any): PathActions {
   return { get, post }
 }
 
-function toImportPath(realPath: string) {
-  const parsedPath = path.parse(realPath)
-  // if (parsedPath.name === 'index') {
-  //   return parsedPath.dir
-  // } else {
-  return parsedPath.dir + path.sep + parsedPath.base
-  // }
-}
+export function routePathWithBase(basePath: string) {
+  return function routePath(actionHandlerPath: string) {
+    const relative = path.relative(basePath, actionHandlerPath)
 
-function loppedPath(basePath: string, endPath: string) {
-  // TODO: make this robust and good
+    // courtesy https://stackoverflow.com/questions/37521893/determine-if-a-path-is-subdirectory-of-another-in-node-js
+    if (
+      !(relative && !relative.startsWith('..') && !path.isAbsolute(relative))
+    ) {
+      throw new Error(
+        `${actionHandlerPath} is not a subdirectory of ${basePath}`
+      )
+    }
 
-  const basePathComponents = basePath.split(path.sep)
-  const endPathComponents = endPath.split(path.sep)
+    const parsed = path.parse(relative)
 
-  const loppedComponents = endPathComponents.slice(
-    basePathComponents.length,
-    -1
-  )
-  return path.sep + loppedComponents.join(path.sep)
+    if (parsed.name === 'index') {
+      return '/' + parsed.dir
+    }
+
+    const prefix = parsed.dir === '' ? '' : '/'
+
+    return prefix + parsed.dir + '/' + parsed.name
+  }
 }

@@ -4,7 +4,14 @@ import { PathActions } from './types'
 import { wrapActionHandler } from './actionAdapter'
 import logger from './logger'
 
-export function createRouter(expressApp: Express) {
+export type RegisterPathActionsFn = (
+  pathActions: PathActions,
+  routePath: string
+) => void
+
+export function createRouter(expressApp: Express): {
+  registerPathActions: RegisterPathActionsFn
+} {
   const expressRouter = Router()
   expressApp.use('/', expressRouter)
 

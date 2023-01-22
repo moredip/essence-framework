@@ -1,12 +1,11 @@
-import { autoDiscover } from 'essence-framework'
+import essence, { autoDiscover, createServer } from 'essence-framework'
 import * as path from 'path'
 import logger from './logger'
 
 export default function createRunner(targetDir: string) {
-  logger.debug(`running essence against ${targetDir}...`)
-
   async function run() {
-    await autoDiscover(path.resolve(targetDir, 'api'))
+    const essenceServer = await essence(targetDir)
+    await essenceServer.startServer()
   }
 
   return {
