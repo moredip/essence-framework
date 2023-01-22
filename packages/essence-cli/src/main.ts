@@ -1,14 +1,12 @@
 require('ts-node/register')
 
-import * as path from 'path'
-import createRunner from './runner'
+import essence from 'essence-framework'
 
-function main(argv) {
+async function main(argv) {
   const targetDir = argv[2] || '.'
-  const absTargetDir = path.resolve(targetDir)
 
-  const runner = createRunner(absTargetDir)
-  runner.run()
+  const essenceServer = await essence(targetDir)
+  await essenceServer.startServer()
 }
 
 main(process.argv)

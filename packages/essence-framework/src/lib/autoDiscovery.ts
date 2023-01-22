@@ -23,13 +23,16 @@ export async function autoDiscover(
 
     const importedActions = await import(handlerPath)
     const actions = normalizeActions(importedActions)
-    // console.log(actions)
 
     registerPathActions(actions, route)
   }
 }
 
 function normalizeActions(importedActions: any): PathActions {
+  if (typeof importedActions === 'function') {
+    return { get: importedActions, post: null }
+  }
+
   const post = importedActions.post || null
   const get = importedActions.get || importedActions.default || null
   return { get, post }

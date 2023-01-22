@@ -5,6 +5,6 @@ export type EssenceRequest = {
 export type ActionOutput = string // todo: handle objects for json result
 export type ActionHandler = (req: EssenceRequest) => Promise<ActionOutput>
 export type PathActions = {
-  get?: ActionHandler
-  post?: ActionHandler
+  get: ActionHandler | null
+  post: ActionHandler | null
 }
