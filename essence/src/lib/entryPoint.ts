@@ -3,15 +3,16 @@ import { autoDiscover } from "./autoDiscovery";
 import logger from "./logger";
 import { createServer } from "./server";
 
-export default async function essence(targetPath: string) {
+export default async function essence(targetPath: string, port?: number) {
   logger.debug(`booting server for ${targetPath}...`);
 
-  const essenceServer = await createServer();
+  if (!port && process.env["PORT"]) {
+    port = parseInt(process.env["PORT"]);
+  }
 
-  await autoDiscover(
-    path.resolve(targetPath, "api"),
-    essenceServer.registerPathActions
-  );
+  const essenceServer = await createServer(port);
+
+  await autoDiscover(targetPath, essenceServer.registerPathActions);
 
   return essenceServer;
 }

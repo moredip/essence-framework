@@ -1,19 +1,33 @@
 import express from "express";
+import { AddressInfo } from "net";
 import logger from "./logger";
-import { createRouter } from "./router";
+import { createRouter, RegisterPathActionsFn } from "./router";
 
-export async function createServer(port = 3553) {
+export type EssenceServer = {
+  startServer: () => void;
+  registerPathActions: RegisterPathActionsFn;
+  getBoundPort: () => number | null;
+};
+
+export async function createServer(port = 3553): Promise<EssenceServer> {
   const app = express();
   const router = createRouter(app);
 
+  let boundPort: number | null = null;
   async function startServer() {
-    app.listen(port, () => {
-      logger.info(`Essence started on port ${port}`);
+    return new Promise<void>((resolve, reject) => {
+      const listener = app.listen(port, () => {
+        // boundPort could be different than port if port === 0
+        boundPort = (listener.address() as AddressInfo).port;
+        logger.info(`Essence started on port ${boundPort}`);
+        resolve();
+      });
     });
   }
 
   return {
     startServer,
     registerPathActions: router.registerPathActions,
+    getBoundPort: () => boundPort,
   };
 }
