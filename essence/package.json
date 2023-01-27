@@ -1,8 +1,8 @@
 {
   "name": "essence-framework",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "An http framework that removes all accidental complexity",
-  "bin":{
+  "bin": {
     "essence": "dist/cli/essence.js"
   },
   "scripts": {
@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "express": "^4.18.2",
+    "ts-node": "^10.9.1",
     "typescript": "^4.9.4",
     "walkdir": "^0.4.1"
   }
