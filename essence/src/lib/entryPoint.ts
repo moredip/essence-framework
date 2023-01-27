@@ -1,4 +1,4 @@
-import path from "path";
+import * as path from "path";
 import { autoDiscover } from "./autoDiscovery";
 import logger from "./logger";
 import { createServer } from "./server";
