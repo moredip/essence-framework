@@ -14,7 +14,7 @@ node ../essence/dist/cli/essence.js basic
 - [ ] support for different methods
 - [x] support for returning JSON
   - if we return an object, serialize to pretty json, and set mimetype/contenttype
-- [ ] handle non-thenable action output
+- [x] handle non-thenable action handler
 - [ ] support for static text
 - [ ] support for static JSON
 - [ ] support for static HTML

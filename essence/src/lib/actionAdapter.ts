@@ -8,7 +8,6 @@ export function wrapActionHandler(actionHandler: ActionHandler) {
     const essenceRequest: EssenceRequest = {
       params: req.params,
     }
-    // TODO: ensure actionHandler is a thenable
     const actionOutput = await actionHandler(essenceRequest)
     convertActionOutputToExpressResponse(actionOutput, res)
   }

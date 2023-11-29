@@ -62,6 +62,14 @@ describe("[INTEGRATION] smoke tests", () => {
     })
   })
 
+  describe("/sync.ts", () => {
+    it("returns the correct response", async () => {
+      const result = await client!.get<string>("/sync")
+      expect(result.status).toBe(200)
+      expect(result.data).toBe("hello from a non-async function")
+    })
+  })
+
   describe("unrecognized path", () => {
     it("returns a 404", async () => {
       const result = await client!.get<string>("/invalid/path", { validateStatus: () => true })
