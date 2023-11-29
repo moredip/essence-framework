@@ -68,4 +68,21 @@ describe("[INTEGRATION] smoke tests", () => {
       expect(result.status).toBe(404)
     })
   })
+
+  describe("/json.ts", () => {
+    it("returns pretty printed JSON with the correct content-type", async () => {
+      const result = await client!.get<string>("/json", { transformResponse: (x) => x })
+      expect(result.status).toBe(200)
+      expect(result.headers["content-type"]).toMatch("application/json")
+      expect(result.data).toBe(`{
+  "some": {
+    "nice json": [
+      1,
+      "two",
+      3
+    ]
+  }
+}`)
+    })
+  })
 })
