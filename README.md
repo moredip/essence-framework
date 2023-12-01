@@ -33,18 +33,30 @@ I think we can punt on a lot of these for 1.0
 
 ## TODO
 
-- [ ] support for different methods
+- [x] support for different methods
+- Inputs
+  - [ ] path params
+  - [ ] query params
+  - [ ] body as JSON
+  - [ ] raw body
+  - [ ] request headers?
+  - [ ] cookies?
+- Outputs
+  - [ ] controlling status code
+  - [ ] controlling response headers
+  - [ ] making redirects (ergonomic sugar on top of status code and headers)
 - [x] support for returning JSON
-  - if we return an object, serialize to pretty json, and set mimetype/contenttype
+  - if we return an object, serialize to pretty json, and send correct content-type response header
 - [x] handle non-thenable action handler
 - [x] support for exporting static text
 - [x] support for exporting static object as JSON
 - Static support
-  - [ ] support for static text file
+  - [x] support for static text file
   - [ ] support for static JSON file
   - [ ] support for static HTML file
   - [ ] support for e.g. /foo/index.json
   - [ ] support for _static dir with arbitrary contents
+  - [ ] send the correct content-type response header in all cases
 - [ ] next style paths (/foo/[bar].js rather than /foo/:bar.js)
 - [ ] clear helpful feedback if a server file exports something that won't be used
   - e.g. a function called 'POST' rather than POST

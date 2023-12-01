@@ -153,5 +153,11 @@ describe("[INTEGRATION] smoke tests", () => {
       const patch = await client!.patch<string>("/statics/exports/json")
       expect(patch.data).toEqual({ json: ["from", "patch"] })
     })
+
+    test(".txt file", async () => {
+      const result = await client!.get<string>("/statics/files/text")
+      expect(result.status).toEqual(200)
+      expect(result.data).toEqual("a static text file\n")
+    })
   })
 })

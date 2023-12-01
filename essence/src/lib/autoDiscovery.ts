@@ -2,7 +2,7 @@ import * as path from "path"
 import * as walk from "walkdir"
 import logger from "./logger"
 import { RegisterPathActionsFn } from "./router"
-import { normalizeImportedAction } from "./actionAdapter"
+import { makeStaticFileAction, normalizeImportedAction } from "./actionAdapter"
 import { PathActions, BLANK_PATH_ACTIONS } from "./types"
 
 export async function autoDiscover(
@@ -18,14 +18,36 @@ export async function autoDiscover(
       continue
     }
     logger.debug("handlerPath: " + handlerPath)
+
     const route = routePath(handlerPath)
     logger.debug("route: " + route)
 
-    const importedActions = await import(handlerPath)
-    const actions = normalizeActions(importedActions)
-
+    const actions = await loadActionsFromFile(handlerPath)
     registerPathActions(actions, route)
   }
+}
+
+async function loadActionsFromFile(handlerPath: string): Promise<PathActions> {
+  switch (path.extname(handlerPath)) {
+    case ".js":
+    case ".ts":
+      return await loadActionsFromCodeFile(handlerPath)
+    case ".txt":
+      return await loadActionsFromTextFile(handlerPath)
+    default:
+      throw `unrecognized extension for server file ${handlerPath}`
+  }
+}
+
+async function loadActionsFromCodeFile(handlerPath: string): Promise<PathActions> {
+  const importedActions = await import(handlerPath)
+  const actions = normalizeActions(importedActions)
+  return actions
+}
+
+async function loadActionsFromTextFile(handlerPath: string): Promise<PathActions> {
+  const fileAction = makeStaticFileAction(handlerPath)
+  return { ...BLANK_PATH_ACTIONS, get: fileAction }
 }
 
 function normalizeActions(importedActions: any): PathActions {
