@@ -25,3 +25,24 @@ function convertActionOutputToExpressResponse(actionOutput: unknown, res: Respon
     return res.type("json").end(prettyJson)
   }
 }
+
+export function normalizeImportedAction(importedAction: any): ActionHandler | null {
+  if (importedAction === null) {
+    return null
+  }
+  if (typeof importedAction === "function") {
+    return importedAction
+  }
+  if (typeof importedAction === "string" || typeof importedAction === "object") {
+    return makeStaticAction(importedAction)
+  }
+
+  // TODO: raise clearer error explaining that the exported action is not a supported type
+  throw new Error(`unexpected action shape: ${importedAction}`)
+}
+
+function makeStaticAction(staticValue: string | object) {
+  return async () => {
+    return staticValue
+  }
+}

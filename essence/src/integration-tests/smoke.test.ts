@@ -93,4 +93,65 @@ describe("[INTEGRATION] smoke tests", () => {
 }`)
     })
   })
+
+  describe("alternative HTTP methods", () => {
+    it("supports POST", async () => {
+      const result = await client!.post<string>("/methods")
+      expect(result.status).toBe(200)
+      expect(result.data).toBe("POST to /methods/index.ts")
+    })
+
+    it("supports PUT", async () => {
+      const result = await client!.put<string>("/methods")
+      expect(result.status).toBe(200)
+      expect(result.data).toBe("PUT to /methods/index.ts")
+    })
+
+    it("supports PATCH", async () => {
+      const result = await client!.patch<string>("/methods")
+      expect(result.status).toBe(200)
+      expect(result.data).toBe("PATCH to /methods/index.ts")
+    })
+
+    it("supports DELETE", async () => {
+      const result = await client!.delete<string>("/methods")
+      expect(result.status).toBe(200)
+      expect(result.data).toBe("DELETE to /methods/index.ts")
+    })
+
+    it("supports OPTIONS", async () => {
+      const result = await client!.options<string>("/methods")
+      expect(result.status).toBe(200)
+      expect(result.data).toBe("OPTIONS to /methods/index.ts")
+    })
+  })
+
+  describe("support for static/hardcoded responses", () => {
+    test("es6 exporting default string", async () => {
+      const result = await client!.get<string>("/statics/exports/es6_default_text")
+      expect(result.status).toBe(200)
+      expect(result.data).toBe("es6 default export string")
+    })
+    test("cjs exporting default string", async () => {
+      const result = await client!.get<string>("/statics/exports/cjs_default_text")
+      expect(result.status).toBe(200)
+      expect(result.data).toBe("cjs default export string")
+    })
+
+    test("named string exports", async () => {
+      const post = await client!.post<string>("/statics/exports/named_text")
+      expect(post.data).toBe("export POST")
+
+      const del = await client!.delete<string>("/statics/exports/named_text")
+      expect(del.data).toBe("export DELETE")
+    })
+
+    test("json from object exports", async () => {
+      const post = await client!.get<string>("/statics/exports/json")
+      expect(post.data).toEqual({ json: ["from", "get"] })
+
+      const patch = await client!.patch<string>("/statics/exports/json")
+      expect(patch.data).toEqual({ json: ["from", "patch"] })
+    })
+  })
 })
