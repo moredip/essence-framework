@@ -1,15 +1,16 @@
 // makes an essence action handler look like an express handler
 
 import { Request, Response } from "express"
-import { ActionHandler, EssenceRequest } from "./types"
+import { ActionHandler, ActionContext } from "./types"
 import { readFile } from "fs/promises"
 
 export function wrapActionHandler(actionHandler: ActionHandler) {
   async function expressHandler(req: Request, res: Response): Promise<void> {
-    const essenceRequest: EssenceRequest = {
-      params: req.params,
+    const context: ActionContext = {
+      pathParams: req.params,
+      queryParams: req.query,
     }
-    const actionOutput = await actionHandler(essenceRequest)
+    const actionOutput = await actionHandler(context)
     convertActionOutputToExpressResponse(actionOutput, res)
   }
 

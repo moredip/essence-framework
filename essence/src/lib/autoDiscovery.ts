@@ -3,7 +3,7 @@ import * as walk from "walkdir"
 import logger from "./logger"
 import { RegisterPathActionsFn } from "./router"
 import { makeStaticFileAction, normalizeImportedAction } from "./actionAdapter"
-import { PathActions, BLANK_PATH_ACTIONS } from "./types"
+import { PathActions, buildPathActions } from "./types"
 
 export async function autoDiscover(
   apiRootPath: string,
@@ -47,12 +47,12 @@ async function loadActionsFromCodeFile(handlerPath: string): Promise<PathActions
 
 async function loadActionsFromTextFile(handlerPath: string): Promise<PathActions> {
   const fileAction = makeStaticFileAction(handlerPath)
-  return { ...BLANK_PATH_ACTIONS, get: fileAction }
+  return buildPathActions({ get: fileAction })
 }
 
 function normalizeActions(importedActions: any): PathActions {
   if (typeof importedActions === "function") {
-    return { ...BLANK_PATH_ACTIONS, get: importedActions }
+    return buildPathActions({ get: importedActions })
   }
 
   const get = normalizeImportedAction(importedActions.get || importedActions.default || null)

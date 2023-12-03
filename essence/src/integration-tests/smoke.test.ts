@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from "axios"
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios"
 import path from "path"
 
 import essence from "../lib/entryPoint"
@@ -25,62 +25,55 @@ describe("[INTEGRATION] smoke tests", () => {
 
   describe("/", () => {
     it("returns the correct response", async () => {
-      const result = await client!.get<string>("/")
-      expect(result.status).toBe(200)
+      const result = await get200("/")
       expect(result.data).toBe("hello from /")
     })
   })
   describe("/foo", () => {
     it("returns the correct response", async () => {
-      const result = await client!.get<string>("/foo")
-      expect(result.status).toBe(200)
+      const result = await get200("/foo")
       expect(result.data).toBe("hello from /foo.ts")
     })
   })
 
   describe("/bar", () => {
     it("returns the correct response", async () => {
-      const result = await client!.get<string>("/bar")
-      expect(result.status).toBe(200)
+      const result = await get200("/bar")
       expect(result.data).toBe("hello from /bar/index.ts")
     })
   })
 
   describe("/bar/baz", () => {
     it("returns the correct response", async () => {
-      const result = await client!.get<string>("/bar/baz")
-      expect(result.status).toBe(200)
+      const result = await get200("/bar/baz")
       expect(result.data).toBe("hello from /bar/baz.ts")
     })
   })
 
   describe("/bar/chirp.js", () => {
     it("returns the correct response", async () => {
-      const result = await client!.get<string>("/bar/chirp")
-      expect(result.status).toBe(200)
+      const result = await get200("/bar/chirp")
       expect(result.data).toBe("hello from /bar/chirp.js")
     })
   })
 
   describe("/sync.ts", () => {
     it("returns the correct response", async () => {
-      const result = await client!.get<string>("/sync")
-      expect(result.status).toBe(200)
+      const result = await get200("/sync")
       expect(result.data).toBe("hello from a non-async function")
     })
   })
 
   describe("unrecognized path", () => {
     it("returns a 404", async () => {
-      const result = await client!.get<string>("/invalid/path", { validateStatus: () => true })
+      const result = await get("/invalid/path")
       expect(result.status).toBe(404)
     })
   })
 
   describe("/json.ts", () => {
     it("returns pretty printed JSON with the correct content-type", async () => {
-      const result = await client!.get<string>("/json", { transformResponse: (x) => x })
-      expect(result.status).toBe(200)
+      const result = await get200("/json", { transformResponse: (x) => x })
       expect(result.headers["content-type"]).toMatch("application/json")
       expect(result.data).toBe(`{
   "some": {
@@ -128,13 +121,11 @@ describe("[INTEGRATION] smoke tests", () => {
 
   describe("support for static/hardcoded responses", () => {
     test("es6 exporting default string", async () => {
-      const result = await client!.get<string>("/statics/exports/es6_default_text")
-      expect(result.status).toBe(200)
+      const result = await get200("/statics/exports/es6_default_text")
       expect(result.data).toBe("es6 default export string")
     })
     test("cjs exporting default string", async () => {
-      const result = await client!.get<string>("/statics/exports/cjs_default_text")
-      expect(result.status).toBe(200)
+      const result = await get200("/statics/exports/cjs_default_text")
       expect(result.data).toBe("cjs default export string")
     })
 
@@ -155,9 +146,42 @@ describe("[INTEGRATION] smoke tests", () => {
     })
 
     test(".txt file", async () => {
-      const result = await client!.get<string>("/statics/files/text")
-      expect(result.status).toEqual(200)
+      const result = await get200("/statics/files/text")
       expect(result.data).toEqual("a static text file\n")
     })
   })
+
+  describe("params", () => {
+    test("simple path params", async () => {
+      const result = await get200("/path-params/single-trailing-param/this-is-the-param")
+      expect(result.data).toEqual({ pathParams: { id: "this-is-the-param" } })
+    })
+
+    test("complex path params and query params", async () => {
+      const result = await get200(
+        "/path-params/multiple/number1/foo/the%202nd/bar?x=1&2=baz&x=2&blank",
+      )
+      expect(result.data).toEqual({
+        pathParams: { first: "number1", "2": "the 2nd" },
+        queryParams: { x: ["1", "2"], "2": "baz", blank: "" },
+      })
+    })
+  })
+
+  async function get200(
+    path: string,
+    axiosConfig: AxiosRequestConfig = {},
+  ): Promise<AxiosResponse> {
+    const result = await get(path, axiosConfig)
+    expect(result.status).toEqual(200)
+    return result
+  }
+
+  async function get(path: string, axiosConfig: AxiosRequestConfig = {}): Promise<AxiosResponse> {
+    const result = await client!.get<string>(path, {
+      validateStatus: () => true, // don't throw an error on 404
+      ...axiosConfig,
+    })
+    return result
+  }
 })

@@ -1,8 +1,13 @@
-export type EssenceRequest = {
-  params: Record<string, string>
+import { ParsedQs } from "qs"
+
+export type ActionContext = {
+  pathParams: Record<string, string>
+  queryParams: ParsedQs
+
+  // TODO: body, rawBody, headers, cookies, etc. etc.
 }
 
-export type ActionHandler = (req: EssenceRequest) => Promise<unknown>
+export type ActionHandler = (context: ActionContext) => Promise<unknown>
 export type PathActions = {
   get: ActionHandler | null
   post: ActionHandler | null
@@ -11,11 +16,14 @@ export type PathActions = {
   delete: ActionHandler | null
   options: ActionHandler | null
 }
-export const BLANK_PATH_ACTIONS: PathActions = {
-  get: null,
-  post: null,
-  put: null,
-  patch: null,
-  delete: null,
-  options: null,
+export function buildPathActions(specificActions: Partial<PathActions>): PathActions {
+  return {
+    get: null,
+    post: null,
+    put: null,
+    patch: null,
+    delete: null,
+    options: null,
+    ...specificActions,
+  }
 }

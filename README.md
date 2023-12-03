@@ -62,3 +62,27 @@ I think we can punt on a lot of these for 1.0
   - e.g. a function called 'POST' rather than POST
 - [ ] automatically open browser when server starts
 - [ ] auto-reload when server files change
+- [ ] support for streaming
+  - if an action returns a stream?
+- [ ] escape hatch to directly define an express handler
+  - maybe by exporting `expressGet`, `expressPost`, `expressAll`, and so on
+  - or better, maybe `withExpressRoute` that would create and inject an express route as a param, which could then be used to call `route.get()`. See [app.route(...)](https://expressjs.com/en/4x/api.html#app.route) for more
+
+
+## TO DOCUMENT
+- [ ] rules for routing (re-state [express rules](https://expressjs.com/en/guide/routing.html))
+  - path params
+- [ ] how to handle different request methods
+  - default function vs named function
+  - can do a named get if you prefer 
+  - other functions will be ignored
+- [ ] different types of responses
+  - [ ] a string
+  - [ ] an object
+  - [ ] a buffer
+- [ ] all the different ways to define an action
+  - [ ] export a function
+  - [ ] export a constant
+  - [ ] add a static file
+  - [ ] ?? _static dir ??
+
