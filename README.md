@@ -35,8 +35,8 @@ I think we can punt on a lot of these for 1.0
 
 - [x] support for different methods
 - Inputs
-  - [ ] path params
-  - [ ] query params
+  - [x] path params
+  - [x] query params
   - [ ] body as JSON
   - [ ] raw body
   - [ ] request headers?
@@ -58,8 +58,9 @@ I think we can punt on a lot of these for 1.0
   - [ ] support for _static dir with arbitrary contents
   - [ ] send the correct content-type response header in all cases
 - [ ] next style paths (/foo/[bar].js rather than /foo/:bar.js)
+  - this could be tricky because we're leaning directly on Express's routing system
 - [ ] clear helpful feedback if a server file exports something that won't be used
-  - e.g. a function called 'POST' rather than POST
+  - e.g. a function called 'POST' rather than post
 - [ ] automatically open browser when server starts
 - [ ] auto-reload when server files change
 - [ ] support for streaming
