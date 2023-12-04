@@ -1,3 +1,4 @@
+import { RequestHandler } from "express"
 import { ParsedQs } from "qs"
 
 export type ActionContext = {
@@ -9,12 +10,12 @@ export type ActionContext = {
 
 export type ActionHandler = (context: ActionContext) => Promise<unknown>
 export type PathActions = {
-  get: ActionHandler | null
-  post: ActionHandler | null
-  put: ActionHandler | null
-  patch: ActionHandler | null
-  delete: ActionHandler | null
-  options: ActionHandler | null
+  get?: RequestHandler | null
+  post: RequestHandler | null
+  put: RequestHandler | null
+  patch: RequestHandler | null
+  delete: RequestHandler | null
+  options: RequestHandler | null
 }
 export function buildPathActions(specificActions: Partial<PathActions>): PathActions {
   return {

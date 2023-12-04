@@ -33,6 +33,27 @@ I think we can punt on a lot of these for 1.0
 
 ## TODO
 
+### Big ticket items for "1.0"
+
+Must have:
+- [ ] request bodies
+- [ ] pop the hood to express
+- [ ] auto-reload
+- [ ] docker packaging
+- [ ] good docs, killer tutorial
+- [ ] docker deploys
+
+Should have:
+- [ ] open browser on start
+- [ ] *extremely* smooth deploy to something like Vercel, fly.io 
+- [ ] status codes, response headers
+
+Nice to have:
+- [ ] JSX-powered HTML
+
+### laundry list
+
+Basics
 - [x] support for different methods
 - Inputs
   - [x] path params
@@ -54,21 +75,27 @@ I think we can punt on a lot of these for 1.0
   - [x] support for static text file
   - [ ] support for static JSON file
   - [ ] support for static HTML file
+  - [x] support for static 'anything else' file (e.g. css)
   - [ ] support for e.g. /foo/index.json
   - [ ] support for _static dir with arbitrary contents
   - [ ] send the correct content-type response header in all cases
 - [ ] next style paths (/foo/[bar].js rather than /foo/:bar.js)
   - this could be tricky because we're leaning directly on Express's routing system
-- [ ] clear helpful feedback if a server file exports something that won't be used
-  - e.g. a function called 'POST' rather than post
-- [ ] automatically open browser when server starts
-- [ ] auto-reload when server files change
+
+Advanced/low-level features
 - [ ] support for streaming
   - if an action returns a stream?
 - [ ] escape hatch to directly define an express handler
   - maybe by exporting `expressGet`, `expressPost`, `expressAll`, and so on
   - or better, maybe `withExpressRoute` that would create and inject an express route as a param, which could then be used to call `route.get()`. See [app.route(...)](https://expressjs.com/en/4x/api.html#app.route) for more
-
+  
+- Ergonomics
+- [ ] clear helpful feedback if a server file exports something that won't be used
+  - e.g. a function called 'POST' rather than post
+- [ ] automatically open browser when server starts
+- [ ] auto-reload when server files change
+- [ ] Docker packaging
+- [ ] `ess demo` creates a demo service which you can play with straight away
 
 ## TO DOCUMENT
 - [ ] rules for routing (re-state [express rules](https://expressjs.com/en/guide/routing.html))

@@ -1,10 +1,10 @@
 // makes an essence action handler look like an express handler
 
-import { Request, Response } from "express"
+import { Request, RequestHandler, Response } from "express"
 import { ActionHandler, ActionContext } from "./types"
 import { readFile } from "fs/promises"
 
-export function wrapActionHandler(actionHandler: ActionHandler) {
+function wrapActionHandler(actionHandler: ActionHandler): RequestHandler {
   async function expressHandler(req: Request, res: Response): Promise<void> {
     const context: ActionContext = {
       pathParams: req.params,
@@ -33,13 +33,12 @@ function convertActionOutputToExpressResponse(actionOutput: unknown, res: Respon
     return res.type("json").end(prettyJson)
   }
 }
-
-export function normalizeImportedAction(importedAction: any): ActionHandler | null {
+export function normalizeImportedAction(importedAction: any): RequestHandler | null {
   if (importedAction === null) {
     return null
   }
   if (typeof importedAction === "function") {
-    return importedAction
+    return wrapActionHandler(importedAction)
   }
   if (typeof importedAction === "string" || typeof importedAction === "object") {
     return makeStaticValueAction(importedAction)
@@ -49,15 +48,18 @@ export function normalizeImportedAction(importedAction: any): ActionHandler | nu
   throw new Error(`unexpected action shape: ${importedAction}`)
 }
 
-function makeStaticValueAction(staticValue: string | object) {
-  return async () => {
-    return staticValue
+function makeStaticValueAction(staticValue: string | object): RequestHandler {
+  return async (req: Request, res: Response) => {
+    convertActionOutputToExpressResponse(staticValue, res)
   }
 }
 
 export function makeStaticFileAction(filePath: string) {
-  return async () => {
+  return async (req: Request, res: Response) => {
+    // note that we read the file contents inside this handler - rather
+    // than in the outer function - so that our action instantly reflects
+    // any changes to the static file
     const fileContents = await readFile(filePath)
-    return fileContents
+    convertActionOutputToExpressResponse(fileContents, res)
   }
 }

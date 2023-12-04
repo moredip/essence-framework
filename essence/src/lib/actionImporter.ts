@@ -15,8 +15,8 @@ export async function loadActionsFromFile(handlerPath: string): Promise<PathActi
 }
 
 async function loadActionsFromCodeFile(handlerPath: string): Promise<PathActions> {
-  const importedActions = await import(handlerPath)
-  return createActionsFromCodeImports(importedActions)
+  const moduleExportsFromFile = await import(handlerPath)
+  return createActionsFromModuleExports(moduleExportsFromFile)
 }
 
 async function loadActionsFromTextFile(handlerPath: string): Promise<PathActions> {
@@ -24,17 +24,18 @@ async function loadActionsFromTextFile(handlerPath: string): Promise<PathActions
   return buildPathActions({ get: fileAction })
 }
 
-function createActionsFromCodeImports(importedActions: any): PathActions {
-  if (typeof importedActions === "function") {
-    return buildPathActions({ get: importedActions })
+export function createActionsFromModuleExports(exports: any): PathActions {
+  if (typeof exports === "function") {
+    return buildPathActions({ get: normalizeImportedAction(exports) })
   }
 
-  const get = normalizeImportedAction(importedActions.get || importedActions.default || null)
-  const post = normalizeImportedAction(importedActions.post || null)
-  const put = normalizeImportedAction(importedActions.put || null)
-  const patch = normalizeImportedAction(importedActions.patch || null)
-  // TODO: also support `delete` being exported
-  const delete_ = normalizeImportedAction(importedActions.delete_ || null)
-  const options = normalizeImportedAction(importedActions.options || null)
+  // TODO: warn if both get and default were exported
+  const get = normalizeImportedAction(exports.get || exports.default || null)
+  const post = normalizeImportedAction(exports.post || null)
+  const put = normalizeImportedAction(exports.put || null)
+  const patch = normalizeImportedAction(exports.patch || null)
+  // TODO: warn if both delete and delete_ were exported
+  const delete_ = normalizeImportedAction(exports.delete || exports.delete_ || null)
+  const options = normalizeImportedAction(exports.options || null)
   return { get, post, put, patch, delete: delete_, options }
 }
