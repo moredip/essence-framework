@@ -1,8 +1,15 @@
 // makes an essence action handler look like an express handler
 
-import { Request, RequestHandler, Response } from "express"
-import { ActionHandler, ActionContext } from "./types"
+import { IRoute, Request, RequestHandler, Response } from "express"
+import {
+  ActionHandler,
+  ActionContext,
+  PathActions,
+  HttpMethods,
+  ExpressRouteReceiver,
+} from "./types"
 import { readFile } from "fs/promises"
+import logger from "./logger"
 
 function wrapActionHandler(actionHandler: ActionHandler): RequestHandler {
   async function expressHandler(req: Request, res: Response): Promise<void> {
@@ -33,6 +40,20 @@ function convertActionOutputToExpressResponse(actionOutput: unknown, res: Respon
     return res.type("json").end(prettyJson)
   }
 }
+
+export function routeAssemblerForPathActions(pathActions: PathActions): ExpressRouteReceiver {
+  const routeAssembler = function (route: IRoute) {
+    HttpMethods.forEach((method) => {
+      const pathAction = pathActions[method]
+      if (pathAction) {
+        logger.debug(`registering ${method.toUpperCase()} ${route.path}`)
+        route[method](pathAction)
+      }
+    })
+  }
+  return routeAssembler
+}
+
 export function normalizeImportedAction(importedAction: any): RequestHandler | null {
   if (importedAction === null) {
     return null

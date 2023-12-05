@@ -1,8 +1,12 @@
 import path from "path"
-import { makeStaticFileAction, normalizeImportedAction } from "./actionAdapter"
-import { PathActions, buildPathActions } from "./types"
+import {
+  makeStaticFileAction,
+  normalizeImportedAction,
+  routeAssemblerForPathActions,
+} from "./actionAdapter"
+import { ExpressRouteReceiver, PathActions, buildPathActions } from "./types"
 
-export async function loadActionsFromFile(handlerPath: string): Promise<PathActions> {
+export async function loadActionsFromFile(handlerPath: string): Promise<ExpressRouteReceiver> {
   switch (path.extname(handlerPath)) {
     case ".js":
     case ".ts":
@@ -14,14 +18,31 @@ export async function loadActionsFromFile(handlerPath: string): Promise<PathActi
   }
 }
 
-async function loadActionsFromCodeFile(handlerPath: string): Promise<PathActions> {
+async function loadActionsFromCodeFile(handlerPath: string): Promise<ExpressRouteReceiver> {
   const moduleExportsFromFile = await import(handlerPath)
-  return createActionsFromModuleExports(moduleExportsFromFile)
+
+  const lowLevelExpressRouteReceiver = extractRouteReceiverFromModuleExports(moduleExportsFromFile)
+  if (lowLevelExpressRouteReceiver !== null) {
+    return lowLevelExpressRouteReceiver
+  }
+
+  const pathActions = createActionsFromModuleExports(moduleExportsFromFile)
+  return routeAssemblerForPathActions(pathActions)
 }
 
-async function loadActionsFromTextFile(handlerPath: string): Promise<PathActions> {
+async function loadActionsFromTextFile(handlerPath: string): Promise<ExpressRouteReceiver> {
   const fileAction = makeStaticFileAction(handlerPath)
-  return buildPathActions({ get: fileAction })
+  return routeAssemblerForPathActions(buildPathActions({ get: fileAction }))
+}
+
+export function extractRouteReceiverFromModuleExports(exports: any): ExpressRouteReceiver | null {
+  // TODO: do we need to check for a naked module export?
+  if (typeof exports.withExpressRoute === "function") {
+    // TODO: check that the function has the right signature
+    return exports.withExpressRoute as ExpressRouteReceiver
+  } else {
+    return null
+  }
 }
 
 export function createActionsFromModuleExports(exports: any): PathActions {

@@ -1,14 +1,14 @@
 import express from "express"
 import { AddressInfo } from "net"
 import logger from "./logger"
-import { createRouter, RegisterPathActionsFn } from "./router"
+import { createRouter, RegisterRoutesFn } from "./router"
 import { Server } from "http"
 import { promisify } from "util"
 
 export type EssenceServer = {
   startServer: () => Promise<void>
   stopServer: () => Promise<void>
-  registerPathActions: RegisterPathActionsFn
+  registerPathActions: RegisterRoutesFn
   getBoundPort: () => number | null
 }
 

@@ -1,3 +1,4 @@
+import { IRoute } from "express"
 import { createActionsFromModuleExports } from "./actionImporter"
 
 describe("actionImporter", () => {

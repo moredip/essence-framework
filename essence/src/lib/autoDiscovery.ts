@@ -2,12 +2,9 @@ import * as path from "path"
 import * as walk from "walkdir"
 import { loadActionsFromFile } from "./actionImporter"
 import logger from "./logger"
-import { RegisterPathActionsFn } from "./router"
+import { RegisterRoutesFn } from "./router"
 
-export async function autoDiscover(
-  apiRootPath: string,
-  registerPathActions: RegisterPathActionsFn,
-) {
+export async function autoDiscover(apiRootPath: string, registerRoutes: RegisterRoutesFn) {
   logger.info("root for action handlers: " + apiRootPath)
   const routePath = routePathWithBase(apiRootPath)
   const handlerPaths = await walk.async(apiRootPath, { return_object: true })
@@ -21,8 +18,8 @@ export async function autoDiscover(
     const route = routePath(handlerPath)
     logger.debug("route: " + route)
 
-    const actions = await loadActionsFromFile(handlerPath)
-    registerPathActions(actions, route)
+    const routeReceiver = await loadActionsFromFile(handlerPath)
+    registerRoutes(routeReceiver, route)
   }
 }
 

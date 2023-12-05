@@ -46,6 +46,7 @@ Must have:
 Should have:
 - [ ] open browser on start
 - [ ] *extremely* smooth deploy to something like Vercel, fly.io 
+  - repl.it?
 - [ ] status codes, response headers
 
 Nice to have:
@@ -85,7 +86,7 @@ Basics
 Advanced/low-level features
 - [ ] support for streaming
   - if an action returns a stream?
-- [ ] escape hatch to directly define an express handler
+- [x] escape hatch to directly define an express handler
   - maybe by exporting `expressGet`, `expressPost`, `expressAll`, and so on
   - or better, maybe `withExpressRoute` that would create and inject an express route as a param, which could then be used to call `route.get()`. See [app.route(...)](https://expressjs.com/en/4x/api.html#app.route) for more
   

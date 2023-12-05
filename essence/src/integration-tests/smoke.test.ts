@@ -168,10 +168,13 @@ describe("[INTEGRATION] smoke tests", () => {
     })
   })
 
-  xdescribe("withExpressRoute", () => {
+  describe("withExpressRoute", () => {
     it("returns responses from the appropriate express handler", async () => {
-      const get = await get200("/express")
-      expect(get.data).toEqual("from express")
+      const get = await client!.get<string>("/express")
+      expect(get.data).toEqual("from express get handler")
+
+      const put = await client!.put<string>("/express")
+      expect(put.data).toEqual("from express put handler")
     })
   })
 

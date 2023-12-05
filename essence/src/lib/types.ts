@@ -1,4 +1,4 @@
-import { RequestHandler } from "express"
+import { IRoute, RequestHandler } from "express"
 import { ParsedQs } from "qs"
 
 export type ActionContext = {
@@ -8,15 +8,20 @@ export type ActionContext = {
   // TODO: body, rawBody, headers, cookies, etc. etc.
 }
 
+export type ExpressRouteReceiver = (route: IRoute) => void
+
+export const HttpMethods = ["get", "post", "put", "patch", "delete", "options"] as const
+
 export type ActionHandler = (context: ActionContext) => Promise<unknown>
 export type PathActions = {
-  get?: RequestHandler | null
+  get: RequestHandler | null
   post: RequestHandler | null
   put: RequestHandler | null
   patch: RequestHandler | null
   delete: RequestHandler | null
   options: RequestHandler | null
 }
+
 export function buildPathActions(specificActions: Partial<PathActions>): PathActions {
   return {
     get: null,
