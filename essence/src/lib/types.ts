@@ -4,6 +4,7 @@ import { ParsedQs } from "qs"
 export type ActionContext = {
   pathParams: Record<string, string>
   queryParams: ParsedQs
+  requestBody: any
 
   // TODO: body, rawBody, headers, cookies, etc. etc.
 }

@@ -36,12 +36,12 @@ I think we can punt on a lot of these for 1.0
 ### Big ticket items for "1.0"
 
 Must have:
-- [ ] request bodies
-- [ ] pop the hood to express
+- [x] request bodies
+- [x] pop the hood to express
 - [ ] auto-reload
 - [ ] docker packaging
 - [ ] good docs, killer tutorial
-- [ ] docker deploys
+- [ ] support for static JSON, HTML files
 
 Should have:
 - [ ] open browser on start
@@ -50,7 +50,7 @@ Should have:
 - [ ] status codes, response headers
 
 Nice to have:
-- [ ] JSX-powered HTML
+- [ ] dynamic JSX-powered HTML
 
 ### laundry list
 
@@ -59,7 +59,8 @@ Basics
 - Inputs
   - [x] path params
   - [x] query params
-  - [ ] body as JSON
+  - [x] body as JSON/form
+    - using `body-parser`, probably
   - [ ] raw body
   - [ ] request headers?
   - [ ] cookies?

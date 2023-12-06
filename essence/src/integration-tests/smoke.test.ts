@@ -178,6 +178,30 @@ describe("[INTEGRATION] smoke tests", () => {
     })
   })
 
+  describe("request body parsing", () => {
+    it("parses json in the request body", async () => {
+      const payload = { some: ["json"] }
+      const result = await client!.post<string>("/body-parsing", payload)
+      expect(result.status).toEqual(200)
+      expect(result.data).toEqual({
+        parsedBody: { some: ["json"] },
+      })
+    })
+
+    it("parses json in the request body", async () => {
+      const payload = { form: "data" }
+      const result = await client!.post("/body-parsing", payload, {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      })
+      expect(result.status).toEqual(200)
+      expect(result.data).toEqual({
+        parsedBody: { form: "data" },
+      })
+    })
+  })
+
   async function get200(
     path: string,
     axiosConfig: AxiosRequestConfig = {},

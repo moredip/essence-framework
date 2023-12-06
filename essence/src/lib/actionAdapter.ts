@@ -16,6 +16,7 @@ function wrapActionHandler(actionHandler: ActionHandler): RequestHandler {
     const context: ActionContext = {
       pathParams: req.params,
       queryParams: req.query,
+      requestBody: req.body,
     }
     const actionOutput = await actionHandler(context)
     convertActionOutputToExpressResponse(actionOutput, res)
