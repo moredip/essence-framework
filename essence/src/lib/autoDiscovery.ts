@@ -13,11 +13,11 @@ export async function autoDiscover(apiRootPath: string, registerRoutes: Register
     if (!stats.isFile()) {
       continue
     }
-    logger.debug("handlerPath: " + handlerPath)
 
     const route = routePath(handlerPath)
-    logger.debug("route: " + route)
+    logger.info("\nroute: " + route)
 
+    logger.debug("loading action path: " + handlerPath)
     const routeReceiver = await loadActionsFromFile(handlerPath)
     registerRoutes(routeReceiver, route)
   }

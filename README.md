@@ -56,6 +56,7 @@ Nice to have:
 
 Basics
 - [x] support for different methods
+- [x] gracefully handle bad action files
 - Inputs
   - [x] path params
   - [x] query params

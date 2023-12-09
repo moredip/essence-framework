@@ -10,6 +10,7 @@ export type ActionContext = {
 }
 
 export type ExpressRouteReceiver = (route: IRoute) => void
+export const NoopRouteReceiver: ExpressRouteReceiver = (route: IRoute) => {}
 
 export const HttpMethods = ["get", "post", "put", "patch", "delete", "options"] as const
 

@@ -4,7 +4,8 @@ import {
   normalizeImportedAction,
   routeAssemblerForPathActions,
 } from "./actionAdapter"
-import { ExpressRouteReceiver, PathActions, buildPathActions } from "./types"
+import { ExpressRouteReceiver, NoopRouteReceiver, PathActions, buildPathActions } from "./types"
+import logger from "./logger"
 
 export async function loadActionsFromFile(handlerPath: string): Promise<ExpressRouteReceiver> {
   switch (path.extname(handlerPath)) {
@@ -19,7 +20,15 @@ export async function loadActionsFromFile(handlerPath: string): Promise<ExpressR
 }
 
 async function loadActionsFromCodeFile(handlerPath: string): Promise<ExpressRouteReceiver> {
-  const moduleExportsFromFile = await import(handlerPath)
+  let moduleExportsFromFile
+  try {
+    moduleExportsFromFile = await import(handlerPath)
+  } catch (e) {
+    logger.warn("!! failed to load action file - no route created !!")
+    // TODO: report this error in more detail
+    logger.info(e)
+    return NoopRouteReceiver
+  }
 
   const lowLevelExpressRouteReceiver = extractRouteReceiverFromModuleExports(moduleExportsFromFile)
   if (lowLevelExpressRouteReceiver !== null) {
@@ -50,8 +59,15 @@ export function createActionsFromModuleExports(exports: any): PathActions {
     return buildPathActions({ get: normalizeImportedAction(exports) })
   }
 
+  // if no default export is defined, an empty object is exported.
+  // Let's ignore that.
+  let defaultExport = exports.default
+  if (typeof defaultExport === "object" && Object.keys(defaultExport).length === 0) {
+    defaultExport = null
+  }
+
   // TODO: warn if both get and default were exported
-  const get = normalizeImportedAction(exports.get || exports.default || null)
+  const get = normalizeImportedAction(exports.get || defaultExport || null)
   const post = normalizeImportedAction(exports.post || null)
   const put = normalizeImportedAction(exports.put || null)
   const patch = normalizeImportedAction(exports.patch || null)

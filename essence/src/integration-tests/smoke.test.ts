@@ -117,6 +117,11 @@ describe("[INTEGRATION] smoke tests", () => {
       expect(result.status).toBe(200)
       expect(result.data).toBe("OPTIONS to /methods/index.ts")
     })
+
+    it("returns 404 from GET when no get handler is exported", async () => {
+      const result = await get("/methods")
+      expect(result.status).toBe(404)
+    })
   })
 
   describe("support for static/hardcoded responses", () => {
@@ -199,6 +204,18 @@ describe("[INTEGRATION] smoke tests", () => {
       expect(result.data).toEqual({
         parsedBody: { form: "data" },
       })
+    })
+  })
+
+  it("returns a 404 for an action file that does not export anything", async () => {
+    const result = await get("/no-exports")
+    expect(result.status).toBe(404)
+  })
+
+  describe("gracefully handling action files with bad syntax", () => {
+    it("does not register a route for bad typescript action file", async () => {
+      const result = await get("/bad-actions/invalid-ts")
+      expect(result.status).toBe(404)
     })
   })
 
