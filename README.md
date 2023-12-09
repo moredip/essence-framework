@@ -76,10 +76,11 @@ Basics
 - [x] support for exporting static object as JSON
 - Static support
   - [x] support for static text file
-  - [ ] support for static JSON file
-  - [ ] support for static HTML file
+  - [x] support for static JSON file
+  - [x] support for static HTML file
   - [x] support for static 'anything else' file (e.g. css)
-  - [ ] support for e.g. /foo/index.json
+  - [x] support for e.g. /foo/index.json
+    - [ ] gracefully handle competing index. files (e.g. an index.txt AND index.ts in the same dir)
   - [ ] support for _static dir with arbitrary contents
   - [ ] send the correct content-type response header in all cases
 - [ ] next style paths (/foo/[bar].js rather than /foo/:bar.js)

@@ -1,4 +1,5 @@
 // makes an essence action handler look like an express handler
+import path from "path"
 
 import { IRoute, Request, RequestHandler, Response } from "express"
 import {
@@ -77,11 +78,14 @@ function makeStaticValueAction(staticValue: string | object): RequestHandler {
 }
 
 export function makeStaticFileAction(filePath: string) {
+  const ext = path.extname(filePath)
   return async (req: Request, res: Response) => {
     // note that we read the file contents inside this handler - rather
     // than in the outer function - so that our action instantly reflects
     // any changes to the static file
     const fileContents = await readFile(filePath)
+
+    res.type(ext)
     convertActionOutputToExpressResponse(fileContents, res)
   }
 }

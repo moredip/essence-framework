@@ -13,7 +13,9 @@ export async function loadActionsFromFile(handlerPath: string): Promise<ExpressR
     case ".ts":
       return await loadActionsFromCodeFile(handlerPath)
     case ".txt":
-      return await loadActionsFromTextFile(handlerPath)
+    case ".json":
+    case ".html":
+      return await loadActionsFromStaticFile(handlerPath)
     default:
       throw `unrecognized extension for server file ${handlerPath}`
   }
@@ -39,7 +41,7 @@ async function loadActionsFromCodeFile(handlerPath: string): Promise<ExpressRout
   return routeAssemblerForPathActions(pathActions)
 }
 
-async function loadActionsFromTextFile(handlerPath: string): Promise<ExpressRouteReceiver> {
+async function loadActionsFromStaticFile(handlerPath: string): Promise<ExpressRouteReceiver> {
   const fileAction = makeStaticFileAction(handlerPath)
   return routeAssemblerForPathActions(buildPathActions({ get: fileAction }))
 }

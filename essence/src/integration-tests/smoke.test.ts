@@ -154,6 +154,26 @@ describe("[INTEGRATION] smoke tests", () => {
       const result = await get200("/statics/files/text")
       expect(result.data).toEqual("a static text file\n")
     })
+
+    test("index.txt file", async () => {
+      const result = await get200("/statics/files/static-index")
+      expect(result.data).toEqual("contents of index.txt\n")
+    })
+
+    test(".json file", async () => {
+      const result = await get200("/statics/files/json", { transformResponse: (x) => x })
+      expect(result.headers["content-type"]).toMatch("application/json")
+      expect(result.data).toBe(`{
+  "testing": ["testing",1,"two","3"]
+}
+`)
+    })
+
+    test(".html file", async () => {
+      const result = await get200("/statics/files/html", { transformResponse: (x) => x })
+      expect(result.headers["content-type"]).toMatch("text/html")
+      expect(result.data).toBe("<h1>hello, world</h1>\n")
+    })
   })
 
   describe("params", () => {
