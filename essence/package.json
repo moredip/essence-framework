@@ -1,6 +1,6 @@
 {
   "name": "essence-framework",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "An http framework that removes all accidental complexity",
   "bin": "dist/cli/essence.js",
   "scripts": {
