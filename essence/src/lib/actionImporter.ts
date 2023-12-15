@@ -14,7 +14,12 @@ export async function loadActionsFromFile(handlerPath: string): Promise<ExpressR
       return await loadActionsFromCodeFile(handlerPath)
     case ".txt":
     case ".json":
+    case ".yaml":
+    case ".yml":
+    case ".xml":
     case ".html":
+    case ".htm":
+    case ".css":
       return await loadActionsFromStaticFile(handlerPath)
     default:
       throw `unrecognized extension for server file ${handlerPath}`

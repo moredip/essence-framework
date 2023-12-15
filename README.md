@@ -41,7 +41,7 @@ Must have:
 - [ ] auto-reload
 - [ ] docker packaging
 - [ ] good docs, killer tutorial
-- [ ] support for static JSON, HTML files
+- [x] support for static JSON, HTML files
 
 Should have:
 - [ ] open browser on start
@@ -78,7 +78,7 @@ Basics
   - [x] support for static text file
   - [x] support for static JSON file
   - [x] support for static HTML file
-  - [x] support for static 'anything else' file (e.g. css)
+  - [] support for static 'anything else' file (e.g. css)
   - [x] support for e.g. /foo/index.json
     - [ ] gracefully handle competing index. files (e.g. an index.txt AND index.ts in the same dir)
   - [ ] support for _static dir with arbitrary contents
