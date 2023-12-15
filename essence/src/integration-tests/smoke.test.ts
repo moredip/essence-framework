@@ -156,7 +156,7 @@ describe("[INTEGRATION] smoke tests", () => {
     })
 
     test("index.txt file", async () => {
-      const result = await get200("/statics/files/static-index")
+      const result = await get200("/statics/files/text-as-index")
       expect(result.data).toEqual("contents of index.txt\n")
     })
 
