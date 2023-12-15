@@ -2,9 +2,7 @@
   "name": "essence-framework",
   "version": "0.0.2",
   "description": "An http framework that removes all accidental complexity",
-  "bin": {
-    "essence": "dist/cli/essence.js"
-  },
+  "bin": "dist/cli/essence.js",
   "scripts": {
     "test": "jest",
     "build": "rm -rf dist/* && tsc",
