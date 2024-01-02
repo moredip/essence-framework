@@ -1,5 +1,6 @@
 import { stdout } from "process"
-import essence from "../lib/entryPoint"
+import openBrowser from "react-dev-utils/openBrowser"
+import essence from "../lib/entryPoint.js"
 
 require("ts-node/register")
 
@@ -10,19 +11,22 @@ export default async function main(argv: string[]) {
 
   const essenceServer = await essence(targetDir)
   await essenceServer.startServer()
+
+  const serverUrl = `http://localhost:${essenceServer.getBoundPort()}`
+  openBrowser(serverUrl)
 }
 
 function splash() {
   const banner = `
 
 
-               ########  ######   ######  ######## ##    ##  ######  ######## 
-             ##       ##    ## ##    ## ##       ###   ## ##    ## ##       
-             ##       ##       ##       ##       ####  ## ##       ##       
-             ######    ######   ######  ######   ## ## ## ##       ######   
-             ##             ##       ## ##       ##  #### ##       ##       
-             ##       ##    ## ##    ## ##       ##   ### ##    ## ##       
-             ########  ######   ######  ######## ##    ##  ######  ######## 
+       ########  ######   ######  ######## ##    ##  ######  ######## 
+     ##       ##    ## ##    ## ##       ###   ## ##    ## ##       
+     ##       ##       ##       ##       ####  ## ##       ##       
+     ######    ######   ######  ######   ## ## ## ##       ######   
+     ##             ##       ## ##       ##  #### ##       ##       
+     ##       ##    ## ##    ## ##       ##   ### ##    ## ##       
+     ########  ######   ######  ######## ##    ##  ######  ######## 
 
 
   `

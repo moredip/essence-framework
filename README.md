@@ -38,13 +38,16 @@ I think we can punt on a lot of these for 1.0
 Must have:
 - [x] request bodies
 - [x] pop the hood to express
-- [ ] auto-reload
-- [ ] docker packaging
+- [x] auto-reload
+- [ ] deployment story
+  - build a docker image for a given directory
+  - 1-liner to run pre-baked image against a given directory
+  - ideally, the former using the latter (as an image layer) 
 - [ ] good docs, killer tutorial
 - [x] support for static JSON, HTML files
 
 Should have:
-- [ ] open browser on start
+- [x] open browser on start
 - [ ] *extremely* smooth deploy to something like Vercel, fly.io 
   - repl.it?
 - [ ] status codes, response headers
@@ -96,10 +99,13 @@ Advanced/low-level features
 - Ergonomics
 - [ ] clear helpful feedback if a server file exports something that won't be used
   - e.g. a function called 'POST' rather than post
-- [ ] automatically open browser when server starts
-- [ ] auto-reload when server files change
+- [x] automatically open browser when server starts
+  - [ ] don't re-open browser on auto-reload
+- [x] auto-reload when server files change
 - [ ] Docker packaging
 - [ ] `ess demo` creates a demo service which you can play with straight away
+- [ ] dev server: press a key to see all the routes
+- [ ] logging of each request
 
 ## TO DOCUMENT
 - [ ] rules for routing (re-state [express rules](https://expressjs.com/en/guide/routing.html))
