@@ -100,10 +100,10 @@ Advanced/low-level features
 - [ ] clear helpful feedback if a server file exports something that won't be used
   - e.g. a function called 'POST' rather than post
 - [x] automatically open browser when server starts
-  - [ ] don't re-open browser on auto-reload
+  - [x] don't re-open browser on auto-reload
 - [x] auto-reload when server files change
 - [ ] Docker packaging
-- [ ] `ess demo` creates a demo service which you can play with straight away
+- [ ] `snz demo` creates a demo service which you can play with straight away
 - [ ] dev server: press a key to see all the routes
 - [ ] logging of each request
 
