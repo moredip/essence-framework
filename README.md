@@ -44,6 +44,7 @@ Must have:
   - 1-liner to run pre-baked image against a given directory
   - ideally, the former using the latter (as an image layer) 
 - [ ] good docs, killer tutorial
+  - https://codesandbox.io/ template?
 - [x] support for static JSON, HTML files
 
 Should have:
