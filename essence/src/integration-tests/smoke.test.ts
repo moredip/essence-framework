@@ -239,6 +239,18 @@ describe("[INTEGRATION] smoke tests", () => {
     })
   })
 
+  describe("jsx", () => {
+    it("returns HTML", async () => {
+      const result = await get200("/jsx")
+      expect(result.data).toBe("<h1>JSX!</h1>")
+    })
+
+    it("generates dynamic HTML", async () => {
+      const result = await get200("/jsx/greeting/pete")
+      expect(result.data).toBe("<h1>Hello there, pete</h1>")
+    })
+  })
+
   async function get200(
     path: string,
     axiosConfig: AxiosRequestConfig = {},

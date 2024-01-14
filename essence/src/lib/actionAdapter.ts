@@ -37,10 +37,23 @@ function convertActionOutputToExpressResponse(actionOutput: unknown, res: Respon
     return res.end(actionOutput, "binary")
   }
 
-  if (typeof actionOutput === "object") {
-    const prettyJson = JSON.stringify(actionOutput, null, 2)
-    return res.type("json").end(prettyJson)
+  if (typeof actionOutput !== "object") {
+    // TODO: log this, handle this better
+    return res.status(500).end("unknown action output")
   }
+
+  if (actionOutput === null) {
+    // TODO: log this as a warning?
+    return res.end()
+  }
+
+  if ("_ssr" in actionOutput) {
+    // looks like we have JSX rendered by nano
+    return res.type("html").end(actionOutput._ssr)
+  }
+
+  const prettyJson = JSON.stringify(actionOutput, null, 2)
+  return res.type("json").end(prettyJson)
 }
 
 export function routeAssemblerForPathActions(pathActions: PathActions): ExpressRouteReceiver {

@@ -2,8 +2,6 @@ import { stdout } from "process"
 import openBrowser from "react-dev-utils/openBrowser"
 import essence from "../lib/entryPoint.js"
 
-require("ts-node/register")
-
 export default async function main(argv: string[], isRestart: boolean = false) {
   const targetDir = argv[2] || "."
 

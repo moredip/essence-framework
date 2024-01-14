@@ -1,9 +1,21 @@
 import express from "express"
+import { renderSSR } from "nano-jsx"
 import { AddressInfo } from "net"
 import logger from "./logger"
 import { createRouter, RegisterRoutesFn } from "./router"
 import { Server } from "http"
 import { promisify } from "util"
+
+require("ts-node").register({
+  compilerOptions: {
+    jsx: "react-jsx",
+    jsxImportSource: "nano-jsx/lib",
+  },
+})
+
+// hacky way to get nano to setup `global.document`, which needs to be done
+// before any JSX actions are executed.
+renderSSR(null)
 
 export type EssenceServer = {
   startServer: () => Promise<void>

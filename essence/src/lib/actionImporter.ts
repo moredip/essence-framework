@@ -11,6 +11,8 @@ export async function loadActionsFromFile(handlerPath: string): Promise<ExpressR
   switch (path.extname(handlerPath)) {
     case ".js":
     case ".ts":
+    case ".jsx":
+    case ".tsx":
       return await loadActionsFromCodeFile(handlerPath)
     case ".txt":
     case ".json":
