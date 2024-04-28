@@ -98,6 +98,9 @@ Advanced/low-level features
   - or better, maybe `withExpressRoute` that would create and inject an express route as a param, which could then be used to call `route.get()`. See [app.route(...)](https://expressjs.com/en/4x/api.html#app.route) for more
   
 - Ergonomics
+- [ ] synonyms for `pathParams`, `queryParams`, etc. `p` and `q`?
+- [ ] support `export GET` as synonym for `export get`.
+- [ ] clear graceful error is the specified server dir doesn't exist - current error is extremely **cryptic**
 - [ ] clear helpful feedback if a server file exports something that won't be used
   - e.g. a function called 'POST' rather than post
 - [x] automatically open browser when server starts
@@ -107,6 +110,8 @@ Advanced/low-level features
 - [ ] `snz demo` creates a demo service which you can play with straight away
 - [ ] dev server: press a key to see all the routes
 - [ ] logging of each request
+- [ ] use [ink](https://github.com/vadimdemedes/ink) to build a really fancy dev CLI
+- [ ] magic 404 page in dev mode which creates a template file for you if you press a button
 
 ## TO DOCUMENT
 - [ ] rules for routing (re-state [express rules](https://expressjs.com/en/guide/routing.html))
