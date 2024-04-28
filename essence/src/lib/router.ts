@@ -10,7 +10,7 @@ export function createRouter(expressApp: Express): {
   expressApp.use("/", expressRouter)
 
   expressApp.use(json())
-  expressApp.use(urlencoded())
+  expressApp.use(urlencoded({extended: true}))
 
   function registerPathActions(assembleRoutes: ExpressRouteReceiver, routePath: string) {
     const route = expressApp.route(routePath)
