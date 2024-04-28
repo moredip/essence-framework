@@ -25,22 +25,22 @@ function restartSplash() {
   stdout.write(`
 
 
-  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-  ┃                               ┃
-  ┃      FILE CHANGE DETECTED     ┃
-  ┃      restarting server...     ┃
-  ┃                               ┃
-  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+  ╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄╮
+  ┆                               ┆
+  ┆      FILE CHANGE DETECTED     ┆
+  ┆      restarting server...     ┆
+  ┆                               ┆
+  ╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄╯
   `)
 }
 
 function simpleSplash() {
   const banner = `
-  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-  ┃          ⊹    ⊹    ⊹          ┃
-  ┃      ⊰  Essence Server  ⊱     ┃
-  ┃          ⊹    ⊹    ⊹          ┃
-  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+  ╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄╮
+  ┆          ⊹    ⊹    ⊹          ┆
+  ┆      ⊰  Essence Server  ⊱     ┆
+  ┆          ⊹    ⊹    ⊹          ┆
+  ╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄╯
   `
   stdout.write(banner)
 }
