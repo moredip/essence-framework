@@ -1,12 +1,12 @@
 {
   "name": "snz",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "An http framework that removes all accidental complexity",
   "bin": "dist/cli/essence-watch.js",
   "scripts": {
     "test": "jest",
     "build": "rm -rf dist/* && tsc",
-    "prepublishOnly": "$npm_execpath test && $npm_execpath build"
+    "prepublishOnly": "$npm_execpath test && $npm_execpath run build"
   },
   "keywords": [
     "web framework"
@@ -24,7 +24,8 @@
     "axios": "^1.2.5",
     "got": "^12.5.3",
     "jest": "^29.4.1",
-    "ts-jest": "^29.0.5"
+    "ts-jest": "^29.0.5",
+    "typescript": "^5.4.5"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -33,7 +34,6 @@
     "qs": "^6.11.2",
     "react-dev-utils": "^12.0.1",
     "ts-node": "^10.9.1",
-    "typescript": "^4.9.4",
     "walkdir": "^0.4.1"
   }
 }
