@@ -7,6 +7,7 @@ import { Server } from "http"
 import { promisify } from "util"
 
 require("ts-node").register({
+  transpileOnly: true, // don't apply TS type checks to code in actions
   compilerOptions: {
     jsx: "react-jsx",
     jsxImportSource: "nano-jsx/lib",

@@ -1,6 +1,6 @@
 {
   "name": "snz",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "An http framework that removes all accidental complexity",
   "bin": "dist/cli/essence-watch.js",
   "scripts": {
