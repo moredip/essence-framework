@@ -5,7 +5,7 @@ import logger from "./logger"
 import { RegisterRoutesFn } from "./router"
 
 export async function autoDiscover(apiRootPath: string, registerRoutes: RegisterRoutesFn) {
-  logger.info("root for action handlers: " + apiRootPath)
+  logger.info("\nbuilding routes for " + apiRootPath)
   const routePath = routePathWithBase(apiRootPath)
   const handlerPaths = await walk.async(apiRootPath, { return_object: true })
 
@@ -15,7 +15,7 @@ export async function autoDiscover(apiRootPath: string, registerRoutes: Register
     }
 
     const route = routePath(handlerPath)
-    logger.info("\nroute: " + route)
+    logger.info("҂ " + route)
 
     logger.debug("loading action path: " + handlerPath)
     const routeReceiver = await loadActionsFromFile(handlerPath)

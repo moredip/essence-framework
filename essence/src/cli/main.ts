@@ -8,7 +8,8 @@ export default async function main(argv: string[], isRestart: boolean = false) {
   if (isRestart) {
     restartSplash()
   } else {
-    splash()
+    simpleSplash()
+    // splash()
   }
 
   const essenceServer = await essence(targetDir)
@@ -24,16 +25,24 @@ function restartSplash() {
   stdout.write(`
 
 
-  * ~ - ~ - ~ - ~ ~ - ~ - ~ *
-  *   FILE CHANGE DETECTED  *
-  * ----------------------- *
-  *                         *
-  *  Restarting server...   *
-  *                         *
-  * ~ - ~ - ~ - ~ ~ - ~ - ~ *
-
-
+  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+  ┃                               ┃
+  ┃      FILE CHANGE DETECTED     ┃
+  ┃      restarting server...     ┃
+  ┃                               ┃
+  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
   `)
+}
+
+function simpleSplash() {
+  const banner = `
+  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+  ┃          ⊹    ⊹    ⊹          ┃
+  ┃      ⊰  Essence Server  ⊱     ┃
+  ┃          ⊹    ⊹    ⊹          ┃
+  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+  `
+  stdout.write(banner)
 }
 
 function splash() {
