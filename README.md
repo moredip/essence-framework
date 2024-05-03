@@ -2,15 +2,14 @@
 
 Essence is a web framework focused on building simple HTTP servers with zero boilerplate. 
 
-Create a directory:
+```
+mkdir my_server 
+echo '<h1>hello, world</h1>' > my_server/index.html
+npx snz my_server
+```
+and you're ready to go. 
 
-```mkdir my_server```
-
-Launch `snz` (the Essence CLI):
-
-```npx snz my_server```
-
-and you're ready to go. snz will serve up whatever you put in that directory. No `package.json`. No `create-snz-app` or `snz init` and answering 17 questions. Just point `npx snz` at a directory.
+`snz` will serve up whatever you put in that directory. No `package.json`. No `create-snz-app` or `snz init` and answering 17 questions. Just point `npx snz` at a directory.
 
 ## snz serves up static files (boring...)
 Add a static file (`index.html`, `hello.txt`, ...) and snz will serve those files up as is.
