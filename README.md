@@ -11,6 +11,10 @@ and you're ready to go.
 
 `snz` will serve up whatever you put in that directory. No `package.json`. No `create-snz-app` or `snz init` and answering 17 questions. Just point `npx snz` at a directory.
 
+## demo
+
+[![Essence Demo](http://img.youtube.com/vi/wgosoWAkhZA/0.jpg)](http://www.youtube.com/watch?v=wgosoWAkhZA "Building a custom web service in 2 minutes, with Essence")
+
 ## snz serves up static files (boring...)
 Add a static file (`index.html`, `hello.txt`, ...) and snz will serve those files up as is.
 
