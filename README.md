@@ -24,6 +24,14 @@ Add a JSON file (`index.json`, `/mock/api/users/1.json`, ...) and snz will serve
 
 Add a `.js` or `.ts` file to your server directory and snz will execute it and serve the result.
 
+```typescript
+export default function(){
+    const time = new Date();
+    const formattedTime = time.toLocaleString();
+    return `the time is ${formattedTime}`
+}
+```
+
 ### folder structure defines the routing 
 `/api/users/food.ts` handles requests to `/api/users/food`
 
