@@ -1,12 +1,12 @@
-# snz - the ridiculously simple way to create a web service
+# Essence - the ridiculously simple web service framework
 
-snz - it's pronounced *"essence"* - is a web framework focused on building simple HTTP servers with zero boilerplate. 
+Essence is a web framework focused on building simple HTTP servers with zero boilerplate. 
 
 Create a directory:
 
 ```mkdir my_server```
 
-Launch snz:
+Launch `snz` (the Essence CLI):
 
 ```npx snz my_server```
 
