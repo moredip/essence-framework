@@ -1,132 +1,92 @@
-## Getting Started
+# Essence - the ridiculously simple web service framework
+
+Essence is a web framework focused on building simple HTTP servers with zero boilerplate. 
+
 ```
-cd essence
-pnpm install
-pnpm build
-cd ../examples/
+mkdir my_server 
+echo '<h1>hello, world</h1>' > my_server/index.html
+npx snz my_server
+```
+and you're ready to go. 
 
-node ../essence/dist/cli/essence.js basic
+`snz` will serve up whatever you put in that directory. No `package.json`. No `create-snz-app` or `snz init` and answering 17 questions. Just point `npx snz` at a directory.
+
+## demo
+
+[![Essence Demo](http://img.youtube.com/vi/wgosoWAkhZA/0.jpg)](http://www.youtube.com/watch?v=wgosoWAkhZA "Building a custom web service in 2 minutes, with Essence")
+
+## snz serves up static files (boring...)
+Add a static file (`index.html`, `hello.txt`, ...) and snz will serve those files up as is.
+
+Add a JSON file (`index.json`, `/mock/api/users/1.json`, ...) and snz will serve it up with the appropriate headers.
+
+## snz lets you write API endpoints with zero boilerplate (interesting!)
+
+Add a `.js` or `.ts` file to your server directory and snz will execute it and serve the result.
+
+```typescript
+export default function(){
+    const time = new Date();
+    const formattedTime = time.toLocaleString();
+    return `the time is ${formattedTime}`
+}
 ```
 
-## DESIGN DECISIONS
+### folder structure defines the routing 
+`/api/users/food.ts` handles requests to `/api/users/food`
 
-### how to accept different types of input to an action
-- path params
-- query params
-- body params (e.g. JSON in a POST)
-- raw body (e.g. JSON in a POST)
-- cookies
-- headers
+snz will call the function you define in that file. The return value of that function is the response body. Zero boilerplate.
 
-react-query style, a giant object that you can destructure what you need from:
+```typescript
+export default function(){
+  return "hello, world"
+}
+```
 
-action( {path_params,query_params,body,req,res,etc,etc} )
+return an object and snz will turn it into JSON
+```typescript
+export default function(){
+  return {"hello": "world"}
+}
+```
 
-### How do we want to support redirects
-- throw a special sort of exception?
-- return a special type?
+### path parameters
+Dynamic path parameters work as you'd expect: add `/api/users/:userId/food.ts` and your function in `food.ts` can access `userId` as a path param (with zero boilerplate)
+```
+export default function({pathParams}){
+  const user = pathParams.userId
+  return `greetings, user #${user}`
+}
+```
 
-similarly, how do we want to manage status codes?
-similarly, how do we want to manage response headers?
+### Everything else you need to put together an API
 
-I think we can punt on a lot of these for 1.0
+query parameters (/search?query=123) are supported:
+```
+// search.js
+export default function({queryParams}){
+  const results = someFancySearchProcess(queryParams.query)
+  return {results}
+}
+```
 
-## TODO
+GETs, POSTs, PUTs, and so on are supported, with JSON- or url-form-encoded request bodies:
+```
+// api/an_endpoint/index.js
 
-### Big ticket items for "1.0"
+export function get(){
+  return "You got what you get"
+}
 
-Must have:
-- [x] request bodies
-- [x] pop the hood to express
-- [x] auto-reload
-- [ ] deployment story
-  - build a docker image for a given directory
-  - 1-liner to run pre-baked image against a given directory
-  - ideally, the former using the latter (as an image layer) 
-- [ ] good docs, killer tutorial
-  - https://codesandbox.io/ template?
-- [x] support for static JSON, HTML files
+export function post({requestBody}){
+  return {
+    "you posted this to me": requestBody
+  }
+}
 
-Should have:
-- [x] open browser on start
-- [ ] *extremely* smooth deploy to something like Vercel, fly.io 
-  - repl.it?
-- [ ] status codes, response headers
+export function put({requestBody}){
+  return "I got a PUT, but honestly didn't do much with what you sent me"
+}
+```
 
-Nice to have:
-- [ ] dynamic JSX-powered HTML
-
-### laundry list
-
-Basics
-- [x] support for different methods
-- [x] gracefully handle bad action files
-- Inputs
-  - [x] path params
-  - [x] query params
-  - [x] body as JSON/form
-    - using `body-parser`, probably
-  - [ ] raw body
-  - [ ] request headers?
-  - [ ] cookies?
-- Outputs
-  - [ ] controlling status code
-  - [ ] controlling response headers
-  - [ ] making redirects (ergonomic sugar on top of status code and headers)
-- [x] support for returning JSON
-  - if we return an object, serialize to pretty json, and send correct content-type response header
-- [x] handle non-thenable action handler
-- [x] support for exporting static text
-- [x] support for exporting static object as JSON
-- Static support
-  - [x] support for static text file
-  - [x] support for static JSON file
-  - [x] support for static HTML file
-  - [] support for static 'anything else' file (e.g. css)
-  - [x] support for e.g. /foo/index.json
-    - [ ] gracefully handle competing index. files (e.g. an index.txt AND index.ts in the same dir)
-  - [ ] support for _static dir with arbitrary contents
-  - [ ] send the correct content-type response header in all cases
-- [ ] next style paths (/foo/[bar].js rather than /foo/:bar.js)
-  - this could be tricky because we're leaning directly on Express's routing system
-
-Advanced/low-level features
-- [ ] support for streaming
-  - if an action returns a stream?
-- [x] escape hatch to directly define an express handler
-  - maybe by exporting `expressGet`, `expressPost`, `expressAll`, and so on
-  - or better, maybe `withExpressRoute` that would create and inject an express route as a param, which could then be used to call `route.get()`. See [app.route(...)](https://expressjs.com/en/4x/api.html#app.route) for more
-  
-- Ergonomics
-- [ ] synonyms for `pathParams`, `queryParams`, etc. `p` and `q`?
-- [ ] support `export GET` as synonym for `export get`.
-- [ ] clear graceful error is the specified server dir doesn't exist - current error is extremely **cryptic**
-- [ ] clear helpful feedback if a server file exports something that won't be used
-  - e.g. a function called 'POST' rather than post
-- [x] automatically open browser when server starts
-  - [x] don't re-open browser on auto-reload
-- [x] auto-reload when server files change
-- [ ] Docker packaging
-- [ ] `snz demo` creates a demo service which you can play with straight away
-- [ ] dev server: press a key to see all the routes
-- [ ] logging of each request
-- [ ] use [ink](https://github.com/vadimdemedes/ink) to build a really fancy dev CLI
-- [ ] magic 404 page in dev mode which creates a template file for you if you press a button
-
-## TO DOCUMENT
-- [ ] rules for routing (re-state [express rules](https://expressjs.com/en/guide/routing.html))
-  - path params
-- [ ] how to handle different request methods
-  - default function vs named function
-  - can do a named get if you prefer 
-  - other functions will be ignored
-- [ ] different types of responses
-  - [ ] a string
-  - [ ] an object
-  - [ ] a buffer
-- [ ] all the different ways to define an action
-  - [ ] export a function
-  - [ ] export a constant
-  - [ ] add a static file
-  - [ ] ?? _static dir ??
 
