@@ -1,0 +1,14 @@
+{
+  "name": "baked_in_demo",
+  "version": "1.0.0",
+  "description": "An Essence Framework demo showing how to use essence in \"baked in\" mode",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Pete Hodgson",
+  "license": "MIT",
+  "dependencies": {
+    "snz": "^0.1.3"
+  }
+}
