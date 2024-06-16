@@ -10,7 +10,7 @@ require("ts-node").register({
   transpileOnly: true, // don't apply TS type checks to code in actions
   compilerOptions: {
     jsx: "react-jsx",
-    jsxImportSource: "nano-jsx/lib",
+    jsxImportSource: "snz", // we re-export nano-jsx's jsxRuntime from the snz module
   },
 })
 
