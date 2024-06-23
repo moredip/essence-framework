@@ -14,7 +14,8 @@ process.env["NODEMON_ESSENCE_TIMESTAMP"] = new Date().getTime().toString()
 
 nodemon({
   script: path.join(__dirname, "essence.js"),
-  execArgs: [targetDir],
+  // @ts-ignore: TS2353 - args is a working parameter accepted by `nodemon()`, but not documented in the type definition
+  args: [targetDir],
   watch: [targetDir],
   verbose: true,
   ext: "*",
