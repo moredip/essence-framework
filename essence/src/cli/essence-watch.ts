@@ -14,7 +14,7 @@ process.env["NODEMON_ESSENCE_TIMESTAMP"] = new Date().getTime().toString()
 
 nodemon({
   script: path.join(__dirname, "essence.js"),
-  args: [targetDir],
+  execArgs: [targetDir],
   watch: [targetDir],
   verbose: true,
   ext: "*",
