@@ -9,6 +9,7 @@ import { promisify } from "util"
 require("ts-node").register({
   transpileOnly: true, // don't apply TS type checks to code in actions
   compilerOptions: {
+    module: "commonjs",
     jsx: "react-jsx",
     jsxImportSource: "snz", // we re-export nano-jsx's jsxRuntime from the snz module
   },
