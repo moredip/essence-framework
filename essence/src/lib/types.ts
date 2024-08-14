@@ -5,6 +5,7 @@ export type ActionContext = {
   pathParams: Record<string, string>
   queryParams: ParsedQs
   requestBody: any
+  response: any
 
   // TODO: body, rawBody, headers, cookies, etc. etc.
 }
