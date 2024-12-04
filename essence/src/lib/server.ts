@@ -11,7 +11,7 @@ require("ts-node").register({
   compilerOptions: {
     module: "commonjs",
     jsx: "react-jsx",
-    jsxImportSource: "snz", // we re-export nano-jsx's jsxRuntime from the snz module
+    jsxImportSource: "nano-jsx/lib",
   },
 })
 
