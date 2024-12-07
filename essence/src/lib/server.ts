@@ -5,6 +5,8 @@ import logger from "./logger"
 import { createRouter, RegisterRoutesFn } from "./router"
 import { Server } from "http"
 import { promisify } from "util"
+import { Express } from "express"
+import bootstrap from "./bootstrap"
 
 require("ts-node").register({
   transpileOnly: true, // don't apply TS type checks to code in actions
@@ -20,6 +22,7 @@ require("ts-node").register({
 renderSSR(null)
 
 export type EssenceServer = {
+  app: Express
   startServer: () => Promise<void>
   stopServer: () => Promise<void>
   registerPathActions: RegisterRoutesFn
@@ -28,6 +31,7 @@ export type EssenceServer = {
 
 export async function createServer(port = 3553): Promise<EssenceServer> {
   const app = express()
+  bootstrap(app)
   const router = createRouter(app)
 
   let boundPort: number | null = null
@@ -48,6 +52,7 @@ export async function createServer(port = 3553): Promise<EssenceServer> {
   }
 
   return {
+    app,
     startServer,
     stopServer,
     registerPathActions: router.registerPathActions,
