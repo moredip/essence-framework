@@ -1,0 +1,11 @@
+<script src="https://unpkg.com/htmx.org@2.0.3"></script>
+<h1>oh hai</h1>
+<button hx-post="/clicked"
+    hx-trigger="click"
+    hx-target="#parent-div"
+    hx-swap="innerHTML">
+    Click Me!
+</button>
+<div id="parent-div">
+    <p>Click the button to replace me</p>
+</div>  
