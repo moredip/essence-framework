@@ -39,6 +39,7 @@ Must have:
 - [x] request bodies
 - [x] pop the hood to express
 - [x] auto-reload
+- [ ] catch exceptions, return 500 response 
 - [ ] deployment story
   - build a docker image for a given directory
   - 1-liner to run pre-baked image against a given directory
@@ -54,7 +55,8 @@ Should have:
 - [ ] status codes, response headers
 
 Nice to have:
-- [ ] dynamic JSX-powered HTML
+- [x] dynamic JSX-powered HTML
+  - [ ] that works with `npx snz foo`
 
 ### laundry list
 
@@ -98,6 +100,7 @@ Advanced/low-level features
   - or better, maybe `withExpressRoute` that would create and inject an express route as a param, which could then be used to call `route.get()`. See [app.route(...)](https://expressjs.com/en/4x/api.html#app.route) for more
   
 - Ergonomics
+- [ ] magic 404 page in dev mode which creates a template file for you if you press a button
 - [ ] synonyms for `pathParams`, `queryParams`, etc. `p` and `q`?
 - [ ] support `export GET` as synonym for `export get`.
 - [ ] clear graceful error is the specified server dir doesn't exist - current error is extremely **cryptic**
@@ -111,7 +114,6 @@ Advanced/low-level features
 - [ ] dev server: press a key to see all the routes
 - [ ] logging of each request
 - [ ] use [ink](https://github.com/vadimdemedes/ink) to build a really fancy dev CLI
-- [ ] magic 404 page in dev mode which creates a template file for you if you press a button
 
 ## TO DOCUMENT
 - [ ] rules for routing (re-state [express rules](https://expressjs.com/en/guide/routing.html))
