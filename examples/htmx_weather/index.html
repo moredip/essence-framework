@@ -1,0 +1,11 @@
+<script src="https://unpkg.com/htmx.org@1.6.1"></script>
+<h1>Bare-bones weather</h1>
+<form hx-get="/weather" hx-trigger="submit" hx-target="#weather-result" hx-indicator="#loading">
+    <div>
+        <label for="location">Enter a location:</label>
+        <input type="text" id="location" name="location" required placeholder="e.g. '98225' or 'New York City'">
+    </div>
+    <button type="submit">Get Weather</button>
+</form>
+<div id="weather-result"></div>
+<div id="loading" class="htmx-indicator">Loading...</div>
