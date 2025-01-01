@@ -19,8 +19,14 @@ function wrapActionHandler(actionHandler: ActionHandler): RequestHandler {
       queryParams: req.query,
       requestBody: req.body,
     }
-    const actionOutput = await actionHandler(context)
-    convertActionOutputToExpressResponse(actionOutput, res)
+
+    try {
+      const actionOutput = await actionHandler(context)
+      convertActionOutputToExpressResponse(actionOutput, res)
+    } catch {
+      // TODO: log this, maybe render the error but only in debug?
+      res.status(500).end()
+    }
   }
 
   return expressHandler

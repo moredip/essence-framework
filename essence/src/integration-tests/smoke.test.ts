@@ -251,6 +251,13 @@ describe("[INTEGRATION] smoke tests", () => {
     })
   })
 
+  describe("exception handling", () => {
+    it("returns a 500", async () => {
+      const result = await get("/exceptions/boom")
+      expect(result.status).toBe(500)
+    })
+  })
+
   async function get200(
     path: string,
     axiosConfig: AxiosRequestConfig = {},
