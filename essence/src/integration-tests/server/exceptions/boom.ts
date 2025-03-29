@@ -1,3 +1,3 @@
 export default function () {
-  throw new Error("boom")
+  throw new Error("BOOM!")
 }

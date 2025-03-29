@@ -39,7 +39,7 @@ Must have:
 - [x] request bodies
 - [x] pop the hood to express
 - [x] auto-reload
-- [ ] catch exceptions, return 500 response 
+- [x] catch exceptions, return 500 response 
 - [ ] deployment story
   - build a docker image for a given directory
   - 1-liner to run pre-baked image against a given directory
