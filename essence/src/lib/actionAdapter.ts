@@ -18,6 +18,7 @@ function wrapActionHandler(actionHandler: ActionHandler): RequestHandler {
       pathParams: req.params,
       queryParams: req.query,
       requestBody: req.body,
+      response: res
     }
 
     try {
