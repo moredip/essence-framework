@@ -2,9 +2,9 @@
 import { createApp, createRouter, toNodeListener } from "h3"
 import { createServer } from "node:http"
 import path from "node:path"
-import { renderSSR } from "nano-jsx"
 import { scanSourceDirectory, type HttpMethod } from "./scanner"
 import { setupJSXRuntime } from "./endpointLoader"
+import { createEndpointHandler } from "./endpointAdapter"
 
 type RouterMethod =
   | "get"
@@ -15,45 +15,14 @@ type RouterMethod =
   | "head"
   | "options"
 
-function isJSXElement(value: any): boolean {
-  return (
-    value &&
-    typeof value === "object" &&
-    // React-style JSX
-    ((value.type && value.props !== undefined) ||
-      // nano-jsx style
-      (value.tagName && value.nodeType === 1))
-  )
-}
-
-async function processResponse(result: any, event: any) {
-  if (isJSXElement(result)) {
-    // Render JSX to HTML
-    const html = renderSSR(result)
-    event.node.res.setHeader("content-type", "text/html")
-    return html
-  } else if (typeof result === "object" && result !== null) {
-    // JSON response
-    event.node.res.setHeader("content-type", "application/json")
-    return JSON.stringify(result)
-  } else {
-    // String or other response
-    event.node.res.setHeader("content-type", "text/plain")
-    return String(result)
-  }
-}
-
 // Get source directory from command line args
 const sourceDir = process.argv[2] || "./src"
 const absoluteSourceDir = path.resolve(sourceDir)
 
 async function main() {
-  console.log(`Scanning source directory: ${absoluteSourceDir}`)
-
   // Initialize JSX runtime for server-side rendering
   await setupJSXRuntime()
 
-  // Scan for route files
   const routeMap = await scanSourceDirectory(absoluteSourceDir)
 
   console.log("Route map:")
@@ -76,15 +45,7 @@ async function main() {
 
       const routerMethod = method.toLowerCase() as RouterMethod
 
-      router[routerMethod](routePath, async (event) => {
-        try {
-          const result = await handler()
-          return await processResponse(result, event)
-        } catch (error) {
-          console.error(`Error handling ${method} ${routePath}:`, error)
-          return "Internal server error"
-        }
-      })
+      router[routerMethod](routePath, createEndpointHandler(handler))
     }
   }
 

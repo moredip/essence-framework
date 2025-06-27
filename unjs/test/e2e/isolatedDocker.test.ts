@@ -50,6 +50,7 @@ describe("isolated end-to-end tests", () => {
 
     expect(response.statusCode).toBe(200)
     expect(response.data).toEqual("Hello, world")
+    expect(response.headers["content-type"]).toEqual("text/plain")
   })
 
   test("should transpile TypeScript", async () => {
@@ -60,10 +61,10 @@ describe("isolated end-to-end tests", () => {
   })
 
   test("should transpile JSX", async () => {
-    const response = await makeRequest("/jsx-page")
+    const response = await makeRequest("/tsx-page")
 
     expect(response.statusCode).toBe(200)
     expect(response.data).toEqual("<h1>Hello from JSX</h1>")
-    expect(response.headers["content-type"]).toMatch(/text\/html/)
+    expect(response.headers["content-type"]).toEqual("text/html")
   })
 })

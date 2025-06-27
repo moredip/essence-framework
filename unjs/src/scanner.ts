@@ -23,6 +23,7 @@ export interface RouteInfo {
 export async function scanSourceDirectory(
   sourceDir: string,
 ): Promise<Map<string, RouteInfo>> {
+  console.log(`Scanning source directory: ${sourceDir}`)
   const routeMap = new Map<string, RouteInfo>()
 
   if (!fs.existsSync(sourceDir)) {
