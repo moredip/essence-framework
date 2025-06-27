@@ -1,21 +1,25 @@
-FROM node:22-alpine
+FROM node:22-alpine as package-builder
+WORKDIR /build
 
-WORKDIR /app
-
-# Copy package files
+# Copy package files and source
 COPY package*.json ./
+COPY src/ ./src/
+COPY tsconfig.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+RUN npm ci && npm run build &&npm pack
 
-# Copy built application
-COPY dist/ ./dist/
+FROM node:22-alpine as runner
+WORKDIR /test-workspace
+
+# Copy and install the package from builder stage
+COPY --from=package-builder /build/essence-framework-*.tgz /tmp
+RUN npm install /tmp/essence-framework-*.tgz
 
 # Expose port
 EXPOSE 3000
 
-# Set the entrypoint to our CLI
-ENTRYPOINT ["node", "dist/cli.js"]
+# Use npx to run the framework
+ENTRYPOINT ["npx", "essence-framework"]
 
 # Default source directory (can be overridden)
 CMD ["/server"]

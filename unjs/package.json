@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "A minimalist web framework for zero-boilerplate APIs and HTML sites",
   "main": "dist/index.js",
+  "bin": {
+    "essence-framework": "dist/cli.js"
+  },
   "scripts": {
     "test": "jest",
     "build": "tsc",

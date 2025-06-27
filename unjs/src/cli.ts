@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { createApp, createRouter, toNodeListener } from "h3"
 import { createServer } from "node:http"
 import path from "node:path"
