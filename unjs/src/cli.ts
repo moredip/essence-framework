@@ -4,15 +4,25 @@ import { createServer } from "node:http"
 import path from "node:path"
 import { renderSSR } from "nano-jsx"
 import { scanSourceDirectory, type HttpMethod } from "./scanner"
+import { setupJSXRuntime } from "./endpointLoader"
 
-type RouterMethod = 'get' | 'post' | 'put' | 'delete' | 'patch' | 'head' | 'options'
+type RouterMethod =
+  | "get"
+  | "post"
+  | "put"
+  | "delete"
+  | "patch"
+  | "head"
+  | "options"
 
 function isJSXElement(value: any): boolean {
-  return value && typeof value === 'object' && (
+  return (
+    value &&
+    typeof value === "object" &&
     // React-style JSX
-    (value.type && (value.props !== undefined)) ||
-    // nano-jsx style
-    (value.tagName && value.nodeType === 1)
+    ((value.type && value.props !== undefined) ||
+      // nano-jsx style
+      (value.tagName && value.nodeType === 1))
   )
 }
 
@@ -20,15 +30,15 @@ async function processResponse(result: any, event: any) {
   if (isJSXElement(result)) {
     // Render JSX to HTML
     const html = renderSSR(result)
-    event.node.res.setHeader('content-type', 'text/html')
+    event.node.res.setHeader("content-type", "text/html")
     return html
-  } else if (typeof result === 'object' && result !== null) {
+  } else if (typeof result === "object" && result !== null) {
     // JSON response
-    event.node.res.setHeader('content-type', 'application/json')
+    event.node.res.setHeader("content-type", "application/json")
     return JSON.stringify(result)
   } else {
     // String or other response
-    event.node.res.setHeader('content-type', 'text/plain')
+    event.node.res.setHeader("content-type", "text/plain")
     return String(result)
   }
 }
@@ -39,6 +49,9 @@ const absoluteSourceDir = path.resolve(sourceDir)
 
 async function main() {
   console.log(`Scanning source directory: ${absoluteSourceDir}`)
+
+  // Initialize JSX runtime for server-side rendering
+  await setupJSXRuntime()
 
   // Scan for route files
   const routeMap = await scanSourceDirectory(absoluteSourceDir)
@@ -58,7 +71,7 @@ async function main() {
   for (const [routePath, routeInfo] of routeMap) {
     for (const method of Object.keys(routeInfo.handlers) as HttpMethod[]) {
       const handler = routeInfo.handlers[method]
-      
+
       if (!handler) continue
 
       const routerMethod = method.toLowerCase() as RouterMethod
