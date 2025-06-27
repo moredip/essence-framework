@@ -8,7 +8,7 @@ describe("Essence JSX Integration", () => {
   beforeAll(async () => {
     docker = new DockerWrangler("essence-test")
     await docker.buildImage(path.join(__dirname, "../.."))
-    await docker.startContainer(3000, `${path.join(__dirname, "fixtures/basic-app")}:/app/src`)
+    await docker.startContainer(3000, `${path.join(__dirname, "fixtures/basic-app")}:/test-app`, "/test-app")
   }, 30000)
 
   afterAll(async () => {

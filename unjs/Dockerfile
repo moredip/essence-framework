@@ -14,5 +14,8 @@ COPY dist/ ./dist/
 # Expose port
 EXPOSE 3000
 
-# Start the server
-CMD ["node", "dist/cli.js", "/app/src"]
+# Set the entrypoint to our CLI
+ENTRYPOINT ["node", "dist/cli.js"]
+
+# Default source directory (can be overridden)
+CMD ["/server"]

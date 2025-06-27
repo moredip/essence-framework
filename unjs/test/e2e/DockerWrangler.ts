@@ -28,7 +28,7 @@ export class DockerWrangler {
     })
   }
 
-  async startContainer(port: number, volumeMount?: string): Promise<void> {
+  async startContainer(port: number, volumeMount?: string, sourceDir = "/test-app"): Promise<void> {
     const args = ["run", "-d", "--init", "-p", `${port}:${port}`]
 
     if (volumeMount) {
@@ -38,7 +38,9 @@ export class DockerWrangler {
       console.log(`🚀 Starting container on port ${port}...`)
     }
 
-    args.push(this.imageName)
+    args.push(this.imageName, sourceDir)
+
+    console.log(`🔧 Docker command: docker ${args.join(" ")}`)
 
     // Run container in detached mode and capture container ID
     const containerProcess = spawn("docker", args, { stdio: "pipe" })
