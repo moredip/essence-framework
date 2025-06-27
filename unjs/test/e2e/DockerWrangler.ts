@@ -13,7 +13,7 @@ export class DockerWrangler {
     return new Promise<void>((resolve, reject) => {
       const buildProcess = spawn(
         "docker",
-        ["build", "--no-cache", "-t", this.imageName, "."],
+        ["build", "--no-cache", "-t", this.imageName, "-f", "test/e2e/Dockerfile", "."],
         {
           stdio: "pipe",
           cwd: dockerfilePath,
