@@ -21,6 +21,7 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "h3": "^1.15.3"
+    "h3": "^1.15.3",
+    "jiti": "^2.4.0"
   }
 }

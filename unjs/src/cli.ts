@@ -1,6 +1,7 @@
 import { createApp, createRouter, toNodeListener } from 'h3';
 import { createServer } from 'node:http';
 import path from 'node:path';
+import { createJiti } from 'jiti';
 import { scanSourceDirectory } from './scanner';
 
 // Get source directory from command line args
@@ -26,7 +27,9 @@ for (const [routePath, routeInfo] of routeMap) {
   if (routeInfo.methods.includes('GET')) {
     router.get(routePath, async (event) => {
       try {
-        const module = require(routeInfo.filePath);
+        // Use jiti for runtime TypeScript transpilation
+        const jiti = createJiti(__filename);
+        const module = jiti(routeInfo.filePath);
         const handler = module.default || module.GET;
         
         if (typeof handler === 'function') {

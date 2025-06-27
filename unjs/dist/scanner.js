@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.scanSourceDirectory = scanSourceDirectory;
 const node_fs_1 = __importDefault(require("node:fs"));
 const node_path_1 = __importDefault(require("node:path"));
+const jiti_1 = require("jiti");
 function scanSourceDirectory(sourceDir) {
     const routeMap = new Map();
     if (!node_fs_1.default.existsSync(sourceDir)) {
@@ -23,8 +24,8 @@ function scanDirectory(baseDir, currentDir, routeMap) {
             // Recursively scan subdirectories
             scanDirectory(baseDir, fullPath, routeMap);
         }
-        else if (entry.isFile() && (entry.name.endsWith(".ts") || entry.name.endsWith(".tsx"))) {
-            // Process TypeScript/TSX files
+        else if (entry.isFile() && (entry.name.endsWith(".ts") || entry.name.endsWith(".tsx") || entry.name.endsWith(".js") || entry.name.endsWith(".jsx"))) {
+            // Process TypeScript/TSX/JavaScript/JSX files
             const routeInfo = createRouteInfo(baseDir, fullPath);
             if (routeInfo) {
                 routeMap.set(routeInfo.routePath, routeInfo);
@@ -49,7 +50,7 @@ function createRouteInfo(baseDir, filePath) {
 }
 function filePathToRoutePath(relativePath) {
     // Remove file extension
-    const withoutExt = relativePath.replace(/\.(ts|tsx)$/, "");
+    const withoutExt = relativePath.replace(/\.(ts|tsx|js|jsx)$/, "");
     // Convert to route path
     let routePath = "/" + withoutExt.replace(/\\/g, "/"); // Handle Windows paths
     // Convert index files to root paths
@@ -58,7 +59,9 @@ function filePathToRoutePath(relativePath) {
 }
 function extractMethodsFromFile(filePath) {
     try {
-        const module = require(filePath);
+        // Use jiti for runtime TypeScript transpilation
+        const jiti = (0, jiti_1.createJiti)(__filename);
+        const module = jiti(filePath);
         const methods = [];
         // Check for default export (treat as GET)
         if (module.default) {

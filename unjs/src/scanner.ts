@@ -1,5 +1,6 @@
 import fs from "node:fs"
 import path from "node:path"
+import { createJiti } from "jiti"
 
 export interface RouteInfo {
   filePath: string
@@ -28,8 +29,8 @@ function scanDirectory(baseDir: string, currentDir: string, routeMap: Map<string
     if (entry.isDirectory()) {
       // Recursively scan subdirectories
       scanDirectory(baseDir, fullPath, routeMap)
-    } else if (entry.isFile() && (entry.name.endsWith(".ts") || entry.name.endsWith(".tsx"))) {
-      // Process TypeScript/TSX files
+    } else if (entry.isFile() && (entry.name.endsWith(".ts") || entry.name.endsWith(".tsx") || entry.name.endsWith(".js") || entry.name.endsWith(".jsx"))) {
+      // Process TypeScript/TSX/JavaScript/JSX files
       const routeInfo = createRouteInfo(baseDir, fullPath)
       if (routeInfo) {
         routeMap.set(routeInfo.routePath, routeInfo)
@@ -59,7 +60,7 @@ function createRouteInfo(baseDir: string, filePath: string): RouteInfo | null {
 
 function filePathToRoutePath(relativePath: string): string {
   // Remove file extension
-  const withoutExt = relativePath.replace(/\.(ts|tsx)$/, "")
+  const withoutExt = relativePath.replace(/\.(ts|tsx|js|jsx)$/, "")
 
   // Convert to route path
   let routePath = "/" + withoutExt.replace(/\\/g, "/") // Handle Windows paths
@@ -72,7 +73,9 @@ function filePathToRoutePath(relativePath: string): string {
 
 function extractMethodsFromFile(filePath: string): string[] {
   try {
-    const module = require(filePath)
+    // Use jiti for runtime TypeScript transpilation
+    const jiti = createJiti(__filename)
+    const module = jiti(filePath)
     const methods: string[] = []
 
     // Check for default export (treat as GET)

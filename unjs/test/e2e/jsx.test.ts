@@ -6,12 +6,16 @@ describe("Essence JSX Integration", () => {
   let docker: DockerWrangler
 
   // Helper function to make HTTP requests
-  const makeRequest = async (path: string): Promise<{ data: string; headers: http.IncomingHttpHeaders; statusCode: number }> => {
+  const makeRequest = async (
+    path: string,
+  ): Promise<{ data: string; headers: http.IncomingHttpHeaders; statusCode: number }> => {
     return new Promise((resolve, reject) => {
       http.get(`http://localhost:3000${path}`, (res) => {
         let data = ""
         res.on("data", (chunk) => (data += chunk))
-        res.on("end", () => resolve({ data, headers: res.headers, statusCode: res.statusCode || 0 }))
+        res.on("end", () =>
+          resolve({ data, headers: res.headers, statusCode: res.statusCode || 0 }),
+        )
         res.on("error", reject)
       })
     })
@@ -25,7 +29,11 @@ describe("Essence JSX Integration", () => {
 
   beforeEach(async () => {
     // Start fresh container for each test
-    await docker.startContainer(3000, `${path.join(__dirname, "fixtures/basic-app")}:/test-app`, "/test-app")
+    await docker.startContainer(
+      3000,
+      `${path.join(__dirname, "fixtures/basic-app")}:/test-app`,
+      "/test-app",
+    )
   }, 15000)
 
   afterEach(async () => {
@@ -43,13 +51,11 @@ describe("Essence JSX Integration", () => {
     expect(response.headers["content-type"]).toMatch(/text\/html/)
   })
 
-  test("should handle multiple requests to same endpoint", async () => {
-    const response1 = await makeRequest("/hello")
-    const response2 = await makeRequest("/hello")
+  test("should transpile TypeScript with type annotations", async () => {
+    const response = await makeRequest("/typed")
 
-    expect(response1.statusCode).toBe(200)
-    expect(response1.data).toEqual("Hello, world")
-    expect(response2.statusCode).toBe(200)
-    expect(response2.data).toEqual("Hello, world")
+    expect(response.statusCode).toBe(200)
+    expect(response.data).toEqual("Hello from TypeScript, age 15")
+    expect(response.headers["content-type"]).toMatch(/text\/html/)
   })
 })

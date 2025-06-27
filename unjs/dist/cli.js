@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const h3_1 = require("h3");
 const node_http_1 = require("node:http");
 const node_path_1 = __importDefault(require("node:path"));
+const jiti_1 = require("jiti");
 const scanner_1 = require("./scanner");
 // Get source directory from command line args
 const sourceDir = process.argv[2] || './src';
@@ -25,7 +26,9 @@ for (const [routePath, routeInfo] of routeMap) {
     if (routeInfo.methods.includes('GET')) {
         router.get(routePath, async (event) => {
             try {
-                const module = require(routeInfo.filePath);
+                // Use jiti for runtime TypeScript transpilation
+                const jiti = (0, jiti_1.createJiti)(__filename);
+                const module = jiti(routeInfo.filePath);
                 const handler = module.default || module.GET;
                 if (typeof handler === 'function') {
                     const result = await handler();
