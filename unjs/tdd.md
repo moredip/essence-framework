@@ -1,6 +1,6 @@
 # 🛠️ Technical Design Doc: “Fancy Framework”
 
-*A minimalist web framework for zero-boilerplate APIs and HTML sites*
+_A minimalist web framework for zero-boilerplate APIs and HTML sites_
 
 ---
 
@@ -30,8 +30,8 @@ Here’s everything you need to build a working JSON API and HTML form handler:
 ```ts
 // src/hello.ts
 export const GET = () => {
-  return { message: "Hello, world!" };
-};
+  return { message: "Hello, world!" }
+}
 ```
 
 ```ts
@@ -82,8 +82,8 @@ Handlers can be:
 
 ```ts
 export const GET = ({ context }) => {
-  return { userAgent: context.headers["user-agent"] };
-};
+  return { userAgent: context.headers["user-agent"] }
+}
 ```
 
 ### 🧰 `context` Object
@@ -177,4 +177,3 @@ npx fancy-framework [dir]
 | **Phase 2** | SSR + HTML forms, test harness, default observability               |
 | **Phase 3** | Basic auth/user support, response overrides, DX polish              |
 | **Phase 4** | Optional build system, plugin model, framework-to-framework interop |
-

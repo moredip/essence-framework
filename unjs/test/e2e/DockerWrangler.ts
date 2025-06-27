@@ -11,10 +11,14 @@ export class DockerWrangler {
 
   async buildImage(dockerfilePath: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      const buildProcess = spawn("docker", ["build", "--no-cache", "-t", this.imageName, "."], {
-        stdio: "pipe",
-        cwd: dockerfilePath,
-      })
+      const buildProcess = spawn(
+        "docker",
+        ["build", "--no-cache", "-t", this.imageName, "."],
+        {
+          stdio: "pipe",
+          cwd: dockerfilePath,
+        },
+      )
       buildProcess.on("close", (code) => {
         if (code === 0) {
           resolve()
@@ -26,7 +30,11 @@ export class DockerWrangler {
     })
   }
 
-  async startContainer(port: number, volumeMount?: string, sourceDir = "/test-app"): Promise<void> {
+  async startContainer(
+    port: number,
+    volumeMount?: string,
+    sourceDir = "/test-app",
+  ): Promise<void> {
     const args = ["run", "-d", "--init", "-p", `${port}:${port}`]
 
     if (volumeMount) {
@@ -65,7 +73,9 @@ export class DockerWrangler {
 
     // Stop the container gracefully
     await new Promise<void>((resolve, reject) => {
-      const stopProcess = spawn("docker", ["stop", this.containerId!], { stdio: "pipe" })
+      const stopProcess = spawn("docker", ["stop", this.containerId!], {
+        stdio: "pipe",
+      })
       stopProcess.on("close", (code) => {
         if (code === 0) {
           resolve()
@@ -78,7 +88,9 @@ export class DockerWrangler {
 
     // Remove the container
     await new Promise<void>((resolve, reject) => {
-      const rmProcess = spawn("docker", ["rm", this.containerId!], { stdio: "pipe" })
+      const rmProcess = spawn("docker", ["rm", this.containerId!], {
+        stdio: "pipe",
+      })
       rmProcess.on("close", (code) => {
         if (code === 0) {
           resolve()
@@ -98,14 +110,16 @@ export class DockerWrangler {
     }
 
     return new Promise<string>((resolve, reject) => {
-      const logsProcess = spawn("docker", ["logs", this.containerId!], { stdio: "pipe" })
-      
+      const logsProcess = spawn("docker", ["logs", this.containerId!], {
+        stdio: "pipe",
+      })
+
       let stdout = ""
-      
+
       logsProcess.stdout?.on("data", (data) => {
         stdout += data.toString()
       })
-      
+
       logsProcess.on("close", (code) => {
         if (code === 0) {
           resolve(stdout)
@@ -116,7 +130,10 @@ export class DockerWrangler {
     })
   }
 
-  private async waitForContainerReady(port: number, maxAttempts = 30): Promise<void> {
+  private async waitForContainerReady(
+    port: number,
+    maxAttempts = 30,
+  ): Promise<void> {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         await new Promise<void>((resolve, reject) => {
@@ -139,7 +156,9 @@ export class DockerWrangler {
         return
       } catch (error) {
         if (attempt === maxAttempts) {
-          throw new Error(`Container failed to start after ${maxAttempts} attempts`)
+          throw new Error(
+            `Container failed to start after ${maxAttempts} attempts`,
+          )
         }
 
         // Wait 1 second before next attempt

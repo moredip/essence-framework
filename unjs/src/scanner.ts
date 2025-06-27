@@ -20,7 +20,11 @@ export function scanSourceDirectory(sourceDir: string): Map<string, RouteInfo> {
   return routeMap
 }
 
-function scanDirectory(baseDir: string, currentDir: string, routeMap: Map<string, RouteInfo>) {
+function scanDirectory(
+  baseDir: string,
+  currentDir: string,
+  routeMap: Map<string, RouteInfo>,
+) {
   const entries = fs.readdirSync(currentDir, { withFileTypes: true })
 
   for (const entry of entries) {
@@ -29,7 +33,13 @@ function scanDirectory(baseDir: string, currentDir: string, routeMap: Map<string
     if (entry.isDirectory()) {
       // Recursively scan subdirectories
       scanDirectory(baseDir, fullPath, routeMap)
-    } else if (entry.isFile() && (entry.name.endsWith(".ts") || entry.name.endsWith(".tsx") || entry.name.endsWith(".js") || entry.name.endsWith(".jsx"))) {
+    } else if (
+      entry.isFile() &&
+      (entry.name.endsWith(".ts") ||
+        entry.name.endsWith(".tsx") ||
+        entry.name.endsWith(".js") ||
+        entry.name.endsWith(".jsx"))
+    ) {
       // Process TypeScript/TSX/JavaScript/JSX files
       const routeInfo = createRouteInfo(baseDir, fullPath)
       if (routeInfo) {

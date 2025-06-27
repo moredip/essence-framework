@@ -8,13 +8,21 @@ describe("isolated end-to-end tests", () => {
   // Helper function to make HTTP requests
   const makeRequest = async (
     path: string,
-  ): Promise<{ data: string; headers: http.IncomingHttpHeaders; statusCode: number }> => {
+  ): Promise<{
+    data: string
+    headers: http.IncomingHttpHeaders
+    statusCode: number
+  }> => {
     return new Promise((resolve, reject) => {
       http.get(`http://localhost:3000${path}`, (res) => {
         let data = ""
         res.on("data", (chunk) => (data += chunk))
         res.on("end", () =>
-          resolve({ data, headers: res.headers, statusCode: res.statusCode || 0 }),
+          resolve({
+            data,
+            headers: res.headers,
+            statusCode: res.statusCode || 0,
+          }),
         )
         res.on("error", reject)
       })
