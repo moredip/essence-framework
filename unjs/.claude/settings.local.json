@@ -6,7 +6,8 @@
       "Bash(docker build:*)",
       "Bash(docker:*)",
       "Bash(time npm test)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }
