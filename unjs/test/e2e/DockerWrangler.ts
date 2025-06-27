@@ -1,7 +1,8 @@
-import { spawn, ChildProcess } from 'node:child_process';
+import { spawn } from 'node:child_process';
+import http from 'node:http';
 
 export class DockerWrangler {
-  private containerProcess?: ChildProcess;
+  private containerId?: string;
   private imageName: string;
 
   constructor(imageName: string) {
@@ -22,7 +23,7 @@ export class DockerWrangler {
   }
 
   async startContainer(port: number, volumeMount?: string): Promise<void> {
-    const args = ['run', '--rm', '-p', `${port}:${port}`];
+    const args = ['run', '-d', '-p', `${port}:${port}`];
     
     if (volumeMount) {
       args.push('-v', volumeMount);
@@ -30,34 +31,91 @@ export class DockerWrangler {
     
     args.push(this.imageName);
 
-    this.containerProcess = spawn('docker', args, { stdio: 'pipe' });
+    // Run container in detached mode and capture container ID
+    const containerProcess = spawn('docker', args, { stdio: 'pipe' });
     
-    // Wait for container to start
-    await new Promise(resolve => setTimeout(resolve, 3000));
-  }
+    let containerIdOutput = '';
+    containerProcess.stdout?.on('data', (data) => {
+      containerIdOutput += data.toString();
+    });
 
-  async stopContainer(): Promise<void> {
-    if (this.containerProcess) {
-      this.containerProcess.kill();
-      // Wait for process to actually exit
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-    
-    // Force stop any containers using the specified port
-    await new Promise<void>((resolve) => {
-      const stopProcess = spawn('docker', ['ps', '--filter', 'publish=3000', '--format', '{{.ID}}'], { 
-        stdio: 'pipe' 
-      });
-      let containerIds = '';
-      stopProcess.stdout?.on('data', (data) => containerIds += data.toString());
-      stopProcess.on('close', () => {
-        if (containerIds.trim()) {
-          const killProcess = spawn('docker', ['kill', ...containerIds.trim().split('\n')], { stdio: 'ignore' });
-          killProcess.on('close', () => resolve());
-        } else {
+    await new Promise<void>((resolve, reject) => {
+      containerProcess.on('close', (code) => {
+        if (code === 0) {
+          this.containerId = containerIdOutput.trim();
           resolve();
+        } else {
+          reject(new Error(`Docker run failed with code ${code}`));
         }
       });
     });
+    
+    // Wait for container to be ready by pinging the endpoint
+    await this.waitForContainerReady(port);
+  }
+
+  async stopContainer(): Promise<void> {
+    if (!this.containerId) {
+      return;
+    }
+
+    // Stop the container gracefully
+    await new Promise<void>((resolve, reject) => {
+      const stopProcess = spawn('docker', ['stop', this.containerId!], { stdio: 'pipe' });
+      stopProcess.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`Docker stop failed with code ${code}`));
+        }
+      });
+    });
+
+    // Remove the container
+    await new Promise<void>((resolve, reject) => {
+      const rmProcess = spawn('docker', ['rm', this.containerId!], { stdio: 'pipe' });
+      rmProcess.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`Docker rm failed with code ${code}`));
+        }
+      });
+    });
+
+    this.containerId = undefined;
+  }
+
+  private async waitForContainerReady(port: number, maxAttempts = 30): Promise<void> {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        await new Promise<void>((resolve, reject) => {
+          const req = http.get(`http://localhost:${port}`, (res) => {
+            // Any response (including 404, 500, etc.) means the server is up
+            resolve();
+          });
+          
+          req.on('error', (err) => {
+            reject(err);
+          });
+          
+          req.setTimeout(1000, () => {
+            req.destroy();
+            reject(new Error('Request timeout'));
+          });
+        });
+        
+        // Success - container is ready
+        return;
+        
+      } catch (error) {
+        if (attempt === maxAttempts) {
+          throw new Error(`Container failed to start after ${maxAttempts} attempts`);
+        }
+        
+        // Wait 1 second before next attempt
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
   }
 }

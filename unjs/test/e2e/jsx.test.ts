@@ -32,7 +32,7 @@ export const GET = () => {
     
     // Cleanup test fixture
     fs.rmSync(testDir, { recursive: true, force: true });
-  });
+  }, 15000);
 
   test('should transpile TSX and return HTML', async () => {
     const response = await new Promise<{ data: string; headers: http.IncomingHttpHeaders }>((resolve, reject) => {
