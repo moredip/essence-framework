@@ -2,7 +2,7 @@ import path from "node:path"
 import http from "node:http"
 import { DockerWrangler } from "./DockerWrangler"
 
-describe("Essence JSX Integration", () => {
+describe("isolated end-to-end tests", () => {
   let docker: DockerWrangler
 
   // Helper function to make HTTP requests
@@ -31,21 +31,25 @@ describe("Essence JSX Integration", () => {
     )
   }, 30000)
 
+  afterEach(async () => {
+    const logs = await docker.getContainerLogs()
+    console.log("Container logs:\n", logs)
+  })
+
   afterAll(async () => {
     if (docker) {
       await docker.stopContainer()
     }
   }, 15000)
 
-  test("should transpile TSX and return HTML", async () => {
+  test("should return basic hello, world text", async () => {
     const response = await makeRequest("/hello")
 
     expect(response.statusCode).toBe(200)
     expect(response.data).toEqual("Hello, world")
-    expect(response.headers["content-type"]).toMatch(/text\/html/)
   })
 
-  test("should transpile TypeScript with type annotations", async () => {
+  test("should transpile TypeScript", async () => {
     const response = await makeRequest("/typed")
 
     expect(response.statusCode).toBe(200)

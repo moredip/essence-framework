@@ -92,6 +92,30 @@ export class DockerWrangler {
     this.containerId = undefined
   }
 
+  async getContainerLogs(): Promise<string> {
+    if (!this.containerId) {
+      throw new Error("No container is currently running")
+    }
+
+    return new Promise<string>((resolve, reject) => {
+      const logsProcess = spawn("docker", ["logs", this.containerId!], { stdio: "pipe" })
+      
+      let stdout = ""
+      
+      logsProcess.stdout?.on("data", (data) => {
+        stdout += data.toString()
+      })
+      
+      logsProcess.on("close", (code) => {
+        if (code === 0) {
+          resolve(stdout)
+        } else {
+          reject(new Error(`Docker logs failed with code ${code}`))
+        }
+      })
+    })
+  }
+
   private async waitForContainerReady(port: number, maxAttempts = 30): Promise<void> {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
