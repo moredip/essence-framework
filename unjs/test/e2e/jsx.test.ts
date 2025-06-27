@@ -1,10 +1,10 @@
-import { spawn, ChildProcess } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
+import { DockerWrangler } from './DockerWrangler';
 
 describe('Essence JSX Integration', () => {
-  let containerProcess: ChildProcess;
+  let docker: DockerWrangler;
   const testDir = path.join(__dirname, 'test-fixture');
   const srcDir = path.join(testDir, 'src');
 
@@ -19,52 +19,16 @@ export const GET = () => {
 };
 `);
 
-    // Build Docker image
-    await new Promise<void>((resolve, reject) => {
-      const buildProcess = spawn('docker', ['build', '--no-cache', '-t', 'essence-test', '.'], { 
-        stdio: 'pipe',
-        cwd: path.join(__dirname, '../..')
-      });
-      buildProcess.on('close', (code) => {
-        if (code === 0) resolve();
-        else reject(new Error(`Docker build failed with code ${code}`));
-      });
-    });
-
-    // Start Docker container
-    containerProcess = spawn('docker', [
-      'run', '--rm', '-p', '3000:3000', 
-      '-v', `${testDir}:/app/test-src`,
-      'essence-test'
-    ], { stdio: 'pipe' });
-    
-    // Wait for server to start
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // Set up Docker
+    docker = new DockerWrangler('essence-test');
+    await docker.buildImage(path.join(__dirname, '../..'));
+    await docker.startContainer(3000, `${testDir}:/app/test-src`);
   }, 30000);
 
   afterAll(async () => {
-    if (containerProcess) {
-      containerProcess.kill();
-      // Wait for process to actually exit
-      await new Promise(resolve => setTimeout(resolve, 1000));
+    if (docker) {
+      await docker.stopContainer();
     }
-    
-    // Force stop any containers using port 3000
-    await new Promise<void>((resolve) => {
-      const stopProcess = spawn('docker', ['ps', '--filter', 'publish=3000', '--format', '{{.ID}}'], { 
-        stdio: 'pipe' 
-      });
-      let containerIds = '';
-      stopProcess.stdout?.on('data', (data) => containerIds += data.toString());
-      stopProcess.on('close', () => {
-        if (containerIds.trim()) {
-          const killProcess = spawn('docker', ['kill', ...containerIds.trim().split('\n')], { stdio: 'ignore' });
-          killProcess.on('close', () => resolve());
-        } else {
-          resolve();
-        }
-      });
-    });
     
     // Cleanup test fixture
     fs.rmSync(testDir, { recursive: true, force: true });
