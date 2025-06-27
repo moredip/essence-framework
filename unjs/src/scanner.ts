@@ -1,7 +1,9 @@
-import fs from "node:fs"
+import fs from "node:fs/promises"
 import path from "node:path"
 import { loadEndpointModule } from "./endpointLoader"
 import { HTTP_METHODS, type HttpMethods } from "./types"
+
+const SUPPORTED_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx"] as const
 
 export interface RouteInfo {
   filePath: string
@@ -15,9 +17,10 @@ export async function scanSourceDirectory(
   console.log(`Scanning source directory: ${sourceDir}`)
   const routeMap = new Map<string, RouteInfo>()
 
-  if (!fs.existsSync(sourceDir)) {
-    console.warn(`Source directory does not exist: ${sourceDir}`)
-    return routeMap
+  try {
+    await fs.access(sourceDir)
+  } catch {
+    throw new Error(`Source directory does not exist: ${sourceDir}`)
   }
 
   await scanDirectory(sourceDir, sourceDir, routeMap)
@@ -29,7 +32,7 @@ async function scanDirectory(
   currentDir: string,
   routeMap: Map<string, RouteInfo>,
 ) {
-  const entries = fs.readdirSync(currentDir, { withFileTypes: true })
+  const entries = await fs.readdir(currentDir, { withFileTypes: true })
 
   for (const entry of entries) {
     const fullPath = path.join(currentDir, entry.name)
@@ -38,12 +41,9 @@ async function scanDirectory(
       // Recursively scan subdirectories
       await scanDirectory(baseDir, fullPath, routeMap)
     } else if (entry.isFile()) {
-      if (
-        entry.name.endsWith(".ts") ||
-        entry.name.endsWith(".tsx") ||
-        entry.name.endsWith(".js") ||
-        entry.name.endsWith(".jsx")
-      ) {
+      const ext = path.extname(entry.name)
+
+      if (SUPPORTED_EXTENSIONS.includes(ext as any)) {
         // Process TypeScript/TSX/JavaScript/JSX files
         const routeInfo = await createRouteInfo(baseDir, fullPath)
         if (routeInfo) {
@@ -51,8 +51,7 @@ async function scanDirectory(
         }
       } else {
         // Warn about unrecognized file extensions
-        const ext = path.extname(entry.name)
-        if (ext && !entry.name.startsWith('.')) {
+        if (ext && !entry.name.startsWith(".")) {
           console.warn(`Skipping file with unrecognized extension: ${fullPath}`)
         }
       }
@@ -120,14 +119,12 @@ async function extractHandlersFromFile(
     }
 
     // Warn about unused exports (only for user files, not node_modules)
-    if (!filePath.includes("node_modules")) {
-      const allExports = Object.keys(module)
-      for (const exportName of allExports) {
-        if (!usedExports.has(exportName) && exportName !== "__esModule") {
-          console.warn(
-            `Unused export '${exportName}' in ${filePath} - only HTTP method functions are used as handlers`,
-          )
-        }
+    const allExports = Object.keys(module)
+    for (const exportName of allExports) {
+      if (!usedExports.has(exportName) && exportName !== "__esModule") {
+        console.warn(
+          `Unused export '${exportName}' in ${filePath} - only HTTP method functions are used as handlers`,
+        )
       }
     }
 
