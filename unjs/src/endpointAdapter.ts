@@ -4,13 +4,18 @@ import type { EventHandler, H3Event } from "h3"
 /**
  * Converts an endpoint function into an h3-compatible event handler
  */
-export function createEndpointHandler(endpointFunction: Function): EventHandler {
+export function createEndpointHandler(
+  endpointFunction: Function,
+): EventHandler {
   return async (event) => {
     try {
       const result = await endpointFunction()
       return await processResponse(result, event)
     } catch (error) {
-      console.error(`Error handling ${event.node.req.method} ${event.node.req.url}:`, error)
+      console.error(
+        `Error handling ${event.node.req.method} ${event.node.req.url}:`,
+        error,
+      )
       return "Internal server error"
     }
   }
@@ -47,6 +52,8 @@ function isJSXElement(value: unknown): boolean {
     // React-style JSX
     (("type" in value && "props" in value) ||
       // nano-jsx style
-      ("tagName" in value && "nodeType" in value && (value as any).nodeType === 1))
+      ("tagName" in value &&
+        "nodeType" in value &&
+        (value as any).nodeType === 1))
   )
 }
