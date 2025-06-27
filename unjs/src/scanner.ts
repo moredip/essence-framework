@@ -102,13 +102,25 @@ async function extractHandlersFromFile(
   filePath: string,
 ): Promise<Partial<Record<HttpMethod, Function>>> {
   try {
-    // Use jiti for runtime TypeScript transpilation
-    const jiti = createJiti(__filename, { 
+    // Use jiti for runtime TypeScript transpilation with JSX support
+    const jiti = createJiti(__filename, {
       jsx: {
-        runtime: 'automatic',
-        importSource: 'nano-jsx'
-      }
+        runtime: "classic",
+        pragma: "global.__ESSENCE_PROVIDED_NANO__H__",
+        pragmaFrag: "global.__ESSENCE_PROVIDED_NANO__FRAGMENT__",
+      },
     })
+
+    // Make nano-jsx functions available globally for JSX with SSR support
+    if (filePath.endsWith(".tsx") || filePath.endsWith(".jsx")) {
+      const nano = await import("nano-jsx")
+      const ssr = await import("nano-jsx/lib/ssr.js")
+
+      // Initialize SSR mode
+      ssr.initSSR()
+      ;(global as any).__ESSENCE_PROVIDED_NANO__H__ = nano.h
+      ;(global as any).__ESSENCE_PROVIDED_NANO__FRAGMENT__ = nano.Fragment
+    }
     const module = await jiti.import<Record<string, any>>(filePath)
     const handlers: Partial<Record<HttpMethod, Function>> = {}
     const usedExports = new Set<string>()

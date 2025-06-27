@@ -8,7 +8,12 @@ import { scanSourceDirectory, type HttpMethod } from "./scanner"
 type RouterMethod = 'get' | 'post' | 'put' | 'delete' | 'patch' | 'head' | 'options'
 
 function isJSXElement(value: any): boolean {
-  return value && typeof value === 'object' && value.type && (value.props !== undefined)
+  return value && typeof value === 'object' && (
+    // React-style JSX
+    (value.type && (value.props !== undefined)) ||
+    // nano-jsx style
+    (value.tagName && value.nodeType === 1)
+  )
 }
 
 async function processResponse(result: any, event: any) {

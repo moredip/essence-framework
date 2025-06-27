@@ -59,11 +59,11 @@ describe("isolated end-to-end tests", () => {
     expect(response.data).toEqual("Hello from TypeScript, age 15")
   })
 
-  // test("should transpile JSX", async () => {
-  //   const response = await makeRequest("/jsx-page")
+  test("should transpile JSX", async () => {
+    const response = await makeRequest("/jsx-page")
 
-  //   expect(response.statusCode).toBe(200)
-  //   expect(response.data).toEqual("<h1>Hello from JSX</h1>")
-  //   expect(response.headers["content-type"]).toMatch(/text\/html/)
-  // })
+    expect(response.statusCode).toBe(200)
+    expect(response.data).toEqual("<h1>Hello from JSX</h1>")
+    expect(response.headers["content-type"]).toMatch(/text\/html/)
+  })
 })
