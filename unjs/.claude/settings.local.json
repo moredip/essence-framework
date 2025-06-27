@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(npm run build:*)",
-      "Bash(npm test)"
+      "Bash(npm test)",
+      "Bash(docker build:*)",
+      "Bash(docker:*)",
+      "Bash(time npm test)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }
