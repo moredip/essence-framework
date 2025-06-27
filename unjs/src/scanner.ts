@@ -1,23 +1,12 @@
 import fs from "node:fs"
 import path from "node:path"
 import { loadEndpointModule } from "./endpointLoader"
-
-export const HTTP_METHODS = [
-  "GET",
-  "POST",
-  "PUT",
-  "DELETE",
-  "PATCH",
-  "HEAD",
-  "OPTIONS",
-] as const
-
-export type HttpMethod = (typeof HTTP_METHODS)[number]
+import { HTTP_METHODS, type HttpMethods } from "./types"
 
 export interface RouteInfo {
   filePath: string
   routePath: string
-  handlers: Partial<Record<HttpMethod, Function>>
+  handlers: Partial<Record<HttpMethods, Function>>
 }
 
 export async function scanSourceDirectory(
@@ -48,17 +37,24 @@ async function scanDirectory(
     if (entry.isDirectory()) {
       // Recursively scan subdirectories
       await scanDirectory(baseDir, fullPath, routeMap)
-    } else if (
-      entry.isFile() &&
-      (entry.name.endsWith(".ts") ||
+    } else if (entry.isFile()) {
+      if (
+        entry.name.endsWith(".ts") ||
         entry.name.endsWith(".tsx") ||
         entry.name.endsWith(".js") ||
-        entry.name.endsWith(".jsx"))
-    ) {
-      // Process TypeScript/TSX/JavaScript/JSX files
-      const routeInfo = await createRouteInfo(baseDir, fullPath)
-      if (routeInfo) {
-        routeMap.set(routeInfo.routePath, routeInfo)
+        entry.name.endsWith(".jsx")
+      ) {
+        // Process TypeScript/TSX/JavaScript/JSX files
+        const routeInfo = await createRouteInfo(baseDir, fullPath)
+        if (routeInfo) {
+          routeMap.set(routeInfo.routePath, routeInfo)
+        }
+      } else {
+        // Warn about unrecognized file extensions
+        const ext = path.extname(entry.name)
+        if (ext && !entry.name.startsWith('.')) {
+          console.warn(`Skipping file with unrecognized extension: ${fullPath}`)
+        }
       }
     }
   }
@@ -101,10 +97,10 @@ function filePathToRoutePath(relativePath: string): string {
 
 async function extractHandlersFromFile(
   filePath: string,
-): Promise<Partial<Record<HttpMethod, Function>>> {
+): Promise<Partial<Record<HttpMethods, Function>>> {
   try {
     const module = await loadEndpointModule(filePath)
-    const handlers: Partial<Record<HttpMethod, Function>> = {}
+    const handlers: Partial<Record<HttpMethods, Function>> = {}
     const usedExports = new Set<string>()
 
     // Check for HTTP method exports

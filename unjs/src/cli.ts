@@ -2,18 +2,10 @@
 import { createApp, createRouter, toNodeListener } from "h3"
 import { createServer } from "node:http"
 import path from "node:path"
-import { scanSourceDirectory, type HttpMethod } from "./scanner"
+import { scanSourceDirectory } from "./scanner"
 import { setupJSXRuntime } from "./endpointLoader"
 import { createEndpointHandler } from "./endpointAdapter"
-
-type RouterMethod =
-  | "get"
-  | "post"
-  | "put"
-  | "delete"
-  | "patch"
-  | "head"
-  | "options"
+import { type HttpMethods, type HttpMethodsLowercase } from "./types"
 
 // Get source directory from command line args
 const sourceDir = process.argv[2] || "./src"
@@ -38,12 +30,12 @@ async function main() {
 
   // Register routes from route map
   for (const [routePath, routeInfo] of routeMap) {
-    for (const method of Object.keys(routeInfo.handlers) as HttpMethod[]) {
+    for (const method of Object.keys(routeInfo.handlers) as HttpMethods[]) {
       const handler = routeInfo.handlers[method]
 
       if (!handler) continue
 
-      const routerMethod = method.toLowerCase() as RouterMethod
+      const routerMethod = method.toLowerCase() as HttpMethodsLowercase
 
       router[routerMethod](routePath, createEndpointHandler(handler))
     }
