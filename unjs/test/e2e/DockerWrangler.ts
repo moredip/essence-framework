@@ -10,14 +10,20 @@ export class DockerWrangler {
   }
 
   async buildImage(dockerfilePath: string): Promise<void> {
+    console.log(`🔨 Building Docker image '${this.imageName}'...`);
     return new Promise<void>((resolve, reject) => {
       const buildProcess = spawn('docker', ['build', '--no-cache', '-t', this.imageName, '.'], { 
         stdio: 'pipe',
         cwd: dockerfilePath
       });
       buildProcess.on('close', (code) => {
-        if (code === 0) resolve();
-        else reject(new Error(`Docker build failed with code ${code}`));
+        if (code === 0) {
+          console.log(`✅ Docker image '${this.imageName}' built successfully`);
+          resolve();
+        } else {
+          console.error(`❌ Docker build failed with code ${code}`);
+          reject(new Error(`Docker build failed with code ${code}`));
+        }
       });
     });
   }
@@ -27,6 +33,9 @@ export class DockerWrangler {
     
     if (volumeMount) {
       args.push('-v', volumeMount);
+      console.log(`🚀 Starting container with volume: ${volumeMount}`);
+    } else {
+      console.log(`🚀 Starting container on port ${port}...`);
     }
     
     args.push(this.imageName);
@@ -43,41 +52,53 @@ export class DockerWrangler {
       containerProcess.on('close', (code) => {
         if (code === 0) {
           this.containerId = containerIdOutput.trim();
+          console.log(`📦 Container started with ID: ${this.containerId.substring(0, 12)}...`);
           resolve();
         } else {
+          console.error(`❌ Docker run failed with code ${code}`);
           reject(new Error(`Docker run failed with code ${code}`));
         }
       });
     });
     
     // Wait for container to be ready by pinging the endpoint
+    console.log(`⏳ Waiting for container to be ready on port ${port}...`);
     await this.waitForContainerReady(port);
+    console.log(`✅ Container is ready and responding!`);
   }
 
   async stopContainer(): Promise<void> {
     if (!this.containerId) {
+      console.log(`ℹ️ No container to stop`);
       return;
     }
+
+    console.log(`🛑 Stopping container ${this.containerId.substring(0, 12)}...`);
 
     // Stop the container gracefully
     await new Promise<void>((resolve, reject) => {
       const stopProcess = spawn('docker', ['stop', this.containerId!], { stdio: 'pipe' });
       stopProcess.on('close', (code) => {
         if (code === 0) {
+          console.log(`⏹️ Container stopped successfully`);
           resolve();
         } else {
+          console.error(`❌ Docker stop failed with code ${code}`);
           reject(new Error(`Docker stop failed with code ${code}`));
         }
       });
     });
 
     // Remove the container
+    console.log(`🗑️ Removing container...`);
     await new Promise<void>((resolve, reject) => {
       const rmProcess = spawn('docker', ['rm', this.containerId!], { stdio: 'pipe' });
       rmProcess.on('close', (code) => {
         if (code === 0) {
+          console.log(`✅ Container removed successfully`);
           resolve();
         } else {
+          console.error(`❌ Docker rm failed with code ${code}`);
           reject(new Error(`Docker rm failed with code ${code}`));
         }
       });

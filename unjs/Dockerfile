@@ -15,4 +15,4 @@ COPY dist/ ./dist/
 EXPOSE 3000
 
 # Start the server
-CMD ["node", "dist/cli.js", "/app/test-src"]
+CMD ["node", "dist/cli.js", "/app/src"]

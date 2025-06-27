@@ -19,5 +19,8 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node"
+  },
+  "dependencies": {
+    "h3": "^1.15.3"
   }
 }
