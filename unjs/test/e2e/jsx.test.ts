@@ -22,22 +22,16 @@ describe("Essence JSX Integration", () => {
   }
 
   beforeAll(async () => {
-    // Build image once for all tests
     docker = new DockerWrangler("essence-test")
     await docker.buildImage(path.join(__dirname, "../.."))
-  }, 30000)
-
-  beforeEach(async () => {
-    // Start fresh container for each test
     await docker.startContainer(
       3000,
       `${path.join(__dirname, "fixtures/basic-app")}:/test-app`,
       "/test-app",
     )
-  }, 15000)
+  }, 30000)
 
-  afterEach(async () => {
-    // Clean up container after each test
+  afterAll(async () => {
     if (docker) {
       await docker.stopContainer()
     }
