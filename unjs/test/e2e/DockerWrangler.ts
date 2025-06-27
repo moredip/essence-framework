@@ -29,7 +29,7 @@ export class DockerWrangler {
   }
 
   async startContainer(port: number, volumeMount?: string): Promise<void> {
-    const args = ["run", "-d", "-p", `${port}:${port}`]
+    const args = ["run", "-d", "--init", "-p", `${port}:${port}`]
 
     if (volumeMount) {
       args.push("-v", volumeMount)
