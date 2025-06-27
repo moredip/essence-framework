@@ -2,13 +2,27 @@ import fs from "node:fs"
 import path from "node:path"
 import { createJiti } from "jiti"
 
+export const HTTP_METHODS = [
+  "GET",
+  "POST",
+  "PUT",
+  "DELETE",
+  "PATCH",
+  "HEAD",
+  "OPTIONS",
+] as const
+
+export type HttpMethod = (typeof HTTP_METHODS)[number]
+
 export interface RouteInfo {
   filePath: string
   routePath: string
-  methods: string[]
+  handlers: Partial<Record<HttpMethod, Function>>
 }
 
-export function scanSourceDirectory(sourceDir: string): Map<string, RouteInfo> {
+export async function scanSourceDirectory(
+  sourceDir: string,
+): Promise<Map<string, RouteInfo>> {
   const routeMap = new Map<string, RouteInfo>()
 
   if (!fs.existsSync(sourceDir)) {
@@ -16,11 +30,11 @@ export function scanSourceDirectory(sourceDir: string): Map<string, RouteInfo> {
     return routeMap
   }
 
-  scanDirectory(sourceDir, sourceDir, routeMap)
+  await scanDirectory(sourceDir, sourceDir, routeMap)
   return routeMap
 }
 
-function scanDirectory(
+async function scanDirectory(
   baseDir: string,
   currentDir: string,
   routeMap: Map<string, RouteInfo>,
@@ -32,7 +46,7 @@ function scanDirectory(
 
     if (entry.isDirectory()) {
       // Recursively scan subdirectories
-      scanDirectory(baseDir, fullPath, routeMap)
+      await scanDirectory(baseDir, fullPath, routeMap)
     } else if (
       entry.isFile() &&
       (entry.name.endsWith(".ts") ||
@@ -41,7 +55,7 @@ function scanDirectory(
         entry.name.endsWith(".jsx"))
     ) {
       // Process TypeScript/TSX/JavaScript/JSX files
-      const routeInfo = createRouteInfo(baseDir, fullPath)
+      const routeInfo = await createRouteInfo(baseDir, fullPath)
       if (routeInfo) {
         routeMap.set(routeInfo.routePath, routeInfo)
       }
@@ -49,22 +63,25 @@ function scanDirectory(
   }
 }
 
-function createRouteInfo(baseDir: string, filePath: string): RouteInfo | null {
+async function createRouteInfo(
+  baseDir: string,
+  filePath: string,
+): Promise<RouteInfo | null> {
   // Convert file path to route path
   const relativePath = path.relative(baseDir, filePath)
   const routePath = filePathToRoutePath(relativePath)
 
-  // Extract HTTP methods from file
-  const methods = extractMethodsFromFile(filePath)
+  // Extract handlers from file
+  const handlers = await extractHandlersFromFile(filePath)
 
-  if (methods.length === 0) {
+  if (Object.keys(handlers).length === 0) {
     return null // Skip files with no HTTP method exports
   }
 
   return {
     filePath,
     routePath,
-    methods,
+    handlers,
   }
 }
 
@@ -81,21 +98,47 @@ function filePathToRoutePath(relativePath: string): string {
   return routePath
 }
 
-function extractMethodsFromFile(filePath: string): string[] {
+async function extractHandlersFromFile(
+  filePath: string,
+): Promise<Partial<Record<HttpMethod, Function>>> {
   try {
     // Use jiti for runtime TypeScript transpilation
     const jiti = createJiti(__filename)
-    const module = jiti(filePath)
-    const methods: string[] = []
+    const module = await jiti.import<Record<string, any>>(filePath)
+    const handlers: Partial<Record<HttpMethod, Function>> = {}
+    const usedExports = new Set<string>()
 
-    // Check for default export (treat as GET)
-    if (module.default) {
-      methods.push("GET")
+    // Check for HTTP method exports
+    for (const method of HTTP_METHODS) {
+      if (module[method] && typeof module[method] === "function") {
+        handlers[method] = module[method]
+        usedExports.add(method)
+      }
     }
 
-    return methods
+    // Check for default export (treat as GET)
+    if (module.default && typeof module.default === "function") {
+      if (!handlers.GET) {
+        handlers.GET = module.default
+        usedExports.add("default")
+      }
+    }
+
+    // Warn about unused exports (only for user files, not node_modules)
+    if (!filePath.includes("node_modules")) {
+      const allExports = Object.keys(module)
+      for (const exportName of allExports) {
+        if (!usedExports.has(exportName) && exportName !== "__esModule") {
+          console.warn(
+            `Unused export '${exportName}' in ${filePath} - only HTTP method functions are used as handlers`,
+          )
+        }
+      }
+    }
+
+    return handlers
   } catch (error) {
     console.warn(`Failed to require file ${filePath}:`, error)
-    return []
+    return {}
   }
 }
