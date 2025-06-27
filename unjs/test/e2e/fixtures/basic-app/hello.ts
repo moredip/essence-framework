@@ -1,3 +1,3 @@
-export default function() {
-  return '<h1>Hello from JSX!</h1>';
+export default function () {
+  return "Hello, world"
 }
