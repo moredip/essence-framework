@@ -103,7 +103,12 @@ async function extractHandlersFromFile(
 ): Promise<Partial<Record<HttpMethod, Function>>> {
   try {
     // Use jiti for runtime TypeScript transpilation
-    const jiti = createJiti(__filename)
+    const jiti = createJiti(__filename, { 
+      jsx: {
+        runtime: 'automatic',
+        importSource: 'nano-jsx'
+      }
+    })
     const module = await jiti.import<Record<string, any>>(filePath)
     const handlers: Partial<Record<HttpMethod, Function>> = {}
     const usedExports = new Set<string>()

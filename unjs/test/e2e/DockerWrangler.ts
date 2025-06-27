@@ -55,6 +55,9 @@ export class DockerWrangler {
       containerProcess.on("close", (code) => {
         if (code === 0) {
           this.containerId = containerIdOutput.trim()
+          console.log(
+            `🐳 Container started. To view logs: docker logs ${this.containerId}`,
+          )
           resolve()
         } else {
           console.error(`❌ Docker run failed with code ${code}`)
@@ -86,48 +89,7 @@ export class DockerWrangler {
       })
     })
 
-    // Remove the container
-    await new Promise<void>((resolve, reject) => {
-      const rmProcess = spawn("docker", ["rm", this.containerId!], {
-        stdio: "pipe",
-      })
-      rmProcess.on("close", (code) => {
-        if (code === 0) {
-          resolve()
-        } else {
-          console.error(`❌ Docker rm failed with code ${code}`)
-          reject(new Error(`Docker rm failed with code ${code}`))
-        }
-      })
-    })
-
     this.containerId = undefined
-  }
-
-  async getContainerLogs(): Promise<string> {
-    if (!this.containerId) {
-      throw new Error("No container is currently running")
-    }
-
-    return new Promise<string>((resolve, reject) => {
-      const logsProcess = spawn("docker", ["logs", this.containerId!], {
-        stdio: "pipe",
-      })
-
-      let stdout = ""
-
-      logsProcess.stdout?.on("data", (data) => {
-        stdout += data.toString()
-      })
-
-      logsProcess.on("close", (code) => {
-        if (code === 0) {
-          resolve(stdout)
-        } else {
-          reject(new Error(`Docker logs failed with code ${code}`))
-        }
-      })
-    })
   }
 
   private async waitForContainerReady(

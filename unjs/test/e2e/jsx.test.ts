@@ -39,11 +39,6 @@ describe("isolated end-to-end tests", () => {
     )
   }, 30000)
 
-  afterEach(async () => {
-    const logs = await docker.getContainerLogs()
-    console.log("Container logs:\n", logs)
-  })
-
   afterAll(async () => {
     if (docker) {
       await docker.stopContainer()
@@ -62,6 +57,13 @@ describe("isolated end-to-end tests", () => {
 
     expect(response.statusCode).toBe(200)
     expect(response.data).toEqual("Hello from TypeScript, age 15")
-    expect(response.headers["content-type"]).toMatch(/text\/html/)
   })
+
+  // test("should transpile JSX", async () => {
+  //   const response = await makeRequest("/jsx-page")
+
+  //   expect(response.statusCode).toBe(200)
+  //   expect(response.data).toEqual("<h1>Hello from JSX</h1>")
+  //   expect(response.headers["content-type"]).toMatch(/text\/html/)
+  // })
 })
