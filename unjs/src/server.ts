@@ -15,7 +15,7 @@ export async function boot(sourceDir: string) {
   console.log("Route map:")
   for (const [routePath, routeInfo] of routeMap) {
     console.log(
-      `  ${routePath} -> ${routeInfo.filePath} [${Object.keys(routeInfo.handlers).join(", ")}]`,
+      `  [${Object.keys(routeInfo.handlers).join(", ")}] ${routePath} (${routeInfo.sourcePath})`,
     )
   }
 

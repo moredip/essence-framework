@@ -6,7 +6,7 @@ import { HTTP_METHODS, type HttpMethods } from "./types"
 const SUPPORTED_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx"] as const
 
 export interface RouteInfo {
-  filePath: string
+  sourcePath: string
   routePath: string
   handlers: Partial<Record<HttpMethods, Function>>
 }
@@ -75,7 +75,7 @@ async function createRouteInfo(
   }
 
   return {
-    filePath,
+    sourcePath: relativePath,
     routePath,
     handlers,
   }

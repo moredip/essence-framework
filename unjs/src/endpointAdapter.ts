@@ -1,5 +1,5 @@
 import { renderSSR } from "nano-jsx"
-import type { EventHandler, H3Event } from "h3"
+import { eventHandler, type EventHandler, type H3Event } from "h3"
 
 /**
  * Converts an endpoint function into an h3-compatible event handler
@@ -7,7 +7,7 @@ import type { EventHandler, H3Event } from "h3"
 export function createEndpointHandler(
   endpointFunction: Function,
 ): EventHandler {
-  return async (event) => {
+  return eventHandler(async (event) => {
     try {
       const result = await endpointFunction()
       return await processResponse(result, event)
@@ -18,7 +18,7 @@ export function createEndpointHandler(
       )
       return "Internal server error"
     }
-  }
+  })
 }
 
 /**
