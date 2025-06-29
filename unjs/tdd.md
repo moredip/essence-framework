@@ -1,4 +1,4 @@
-# 🛠️ Technical Design Doc: “Fancy Framework”
+# 🛠️ Technical Design Doc: “Essence Framework”
 
 _A minimalist web framework for zero-boilerplate APIs and HTML sites_
 
@@ -56,7 +56,7 @@ export const POST = ({ context }) => {
 Start a server from the CLI:
 
 ```sh
-npx fancy-framework ./src
+npx essence-framework ./src
 ```
 
 ---
@@ -157,7 +157,7 @@ Throwing a custom exception like `new NotFound()` will map to 404. Throwing a pl
 ### 🚀 CLI
 
 ```sh
-npx fancy-framework [dir]
+npx essence-framework [dir]
 ```
 
 - Boots dev server
