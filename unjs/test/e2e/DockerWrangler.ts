@@ -1,6 +1,5 @@
 import { exec } from "node:child_process"
 import { promisify } from "node:util"
-import http from "node:http"
 import path from "node:path"
 
 const execAsync = promisify(exec)
@@ -13,6 +12,7 @@ const DOCKERFILE_PATH = path.relative(
 export class DockerWrangler {
   private containerId?: string
   private imageName: string
+  private assignedPort?: number
 
   constructor(imageName: string = "essence-e2e-test-image") {
     this.imageName = imageName
@@ -37,11 +37,8 @@ export class DockerWrangler {
     }
   }
 
-  async startContainer(
-    port: number,
-    localSourcePath?: string,
-  ): Promise<void> {
-    const args = ["run", "-d", "--init", "-p", `${port}:${port}`]
+  async startContainer(localSourcePath?: string): Promise<void> {
+    const args = ["run", "-d", "--init", "-P"] // Publish all exposed ports to random host ports
     const containerSourcePath = "/test-app"
 
     if (localSourcePath) {
@@ -71,7 +68,9 @@ export class DockerWrangler {
       throw error
     }
 
-    await this.waitForContainerReady(port)
+    // Get the assigned port
+    await this.getAssignedPort()
+    await this.waitForContainerReady()
   }
 
   async stopContainer(): Promise<void> {
@@ -100,28 +99,40 @@ export class DockerWrangler {
     this.containerId = undefined
   }
 
-  private async waitForContainerReady(
-    port: number,
-    maxAttempts = 30,
-  ): Promise<void> {
+  private async getAssignedPort(): Promise<void> {
+    if (!this.containerId) {
+      throw new Error("No container is running")
+    }
+
+    const command = `docker port ${this.containerId} 3000`
+    try {
+      const { stdout } = await execAsync(command)
+      const portMapping = stdout.trim() // Format: "0.0.0.0:32768"
+      const port = parseInt(portMapping.split(":")[1])
+      this.assignedPort = port
+      console.log(`📡 Container port 3000 is mapped to host port ${port}`)
+    } catch (error: any) {
+      console.error(`❌ Failed to get assigned port:`)
+      if (error.stderr) {
+        console.error("Port stderr:", error.stderr)
+      }
+      throw error
+    }
+  }
+
+  async makeRequestToPath(path: string): Promise<Response> {
+    if (!this.assignedPort) {
+      throw new Error("Container not started or port not assigned")
+    }
+
+    const url = `http://localhost:${this.assignedPort}${path}`
+    return await fetch(url)
+  }
+
+  private async waitForContainerReady(maxAttempts = 30): Promise<void> {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        await new Promise<void>((resolve, reject) => {
-          const req = http.get(`http://localhost:${port}`, (_res) => {
-            // Any response (including 404, 500, etc.) means the server is up
-            resolve()
-          })
-
-          req.on("error", (err) => {
-            reject(err)
-          })
-
-          req.setTimeout(1000, () => {
-            req.destroy()
-            reject(new Error("Request timeout"))
-          })
-        })
-
+        await this.makeRequestToPath("/")
         // Success - container is ready
         return
       } catch (error) {
