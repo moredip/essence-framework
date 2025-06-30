@@ -34,8 +34,7 @@ describe("isolated end-to-end tests", () => {
     await docker.buildImage()
     await docker.startContainer(
       3000,
-      `${path.join(__dirname, "fixtures/basic-app")}:/test-app`,
-      "/test-app",
+      path.join(__dirname, "fixtures/basic-app"),
     )
   }, 30000)
 

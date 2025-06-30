@@ -1,11 +1,14 @@
-import { spawn, exec } from "node:child_process"
+import { exec } from "node:child_process"
 import { promisify } from "node:util"
 import http from "node:http"
 import path from "node:path"
 
 const execAsync = promisify(exec)
 const PROJECT_ROOT = path.join(__dirname, "../..")
-const DOCKERFILE_PATH = path.relative(PROJECT_ROOT, path.join(__dirname, "Dockerfile"))
+const DOCKERFILE_PATH = path.relative(
+  PROJECT_ROOT,
+  path.join(__dirname, "Dockerfile"),
+)
 
 export class DockerWrangler {
   private containerId?: string
@@ -18,7 +21,7 @@ export class DockerWrangler {
   async buildImage(): Promise<void> {
     const command = `docker build --no-cache -t ${this.imageName} -f ${DOCKERFILE_PATH} .`
     console.log(`Building Docker image: ${command}`)
-    
+
     try {
       await execAsync(command, { cwd: PROJECT_ROOT })
     } catch (error: any) {
@@ -36,49 +39,37 @@ export class DockerWrangler {
 
   async startContainer(
     port: number,
-    volumeMount?: string,
-    sourceDir = "/test-app",
+    localSourcePath?: string,
   ): Promise<void> {
     const args = ["run", "-d", "--init", "-p", `${port}:${port}`]
+    const containerSourcePath = "/test-app"
 
-    if (volumeMount) {
-      args.push("-v", volumeMount)
+    if (localSourcePath) {
+      args.push("-v", `${localSourcePath}:${containerSourcePath}`)
     }
 
-    args.push(this.imageName, sourceDir)
+    args.push(this.imageName, containerSourcePath)
 
-    console.log("Docker run command:", ["docker", ...args].join(" "))
+    const command = `docker ${args.join(" ")}`
+    console.log("Docker run command:", command)
 
-    // Run container in detached mode and capture container ID
-    const containerProcess = spawn("docker", args, { stdio: "pipe" })
-
-    let containerIdOutput = ""
-    let containerStderr = ""
-    
-    containerProcess.stdout?.on("data", (data) => {
-      containerIdOutput += data.toString()
-    })
-
-    containerProcess.stderr?.on("data", (data) => {
-      containerStderr += data.toString()
-    })
-
-    await new Promise<void>((resolve, reject) => {
-      containerProcess.on("close", (code) => {
-        if (code === 0) {
-          this.containerId = containerIdOutput.trim()
-          console.log(
-            `🐳 Container started. To view logs: docker logs ${this.containerId}`,
-          )
-          resolve()
-        } else {
-          console.error(`❌ Docker run failed with code ${code}`)
-          console.error("Container stderr:", containerStderr)
-          console.error("Container stdout:", containerIdOutput)
-          reject(new Error(`Docker run failed with code ${code}`))
-        }
-      })
-    })
+    try {
+      const { stdout } = await execAsync(command)
+      this.containerId = stdout.trim()
+      console.log(
+        `🐳 Container started. To view logs: docker logs ${this.containerId}`,
+      )
+    } catch (error: any) {
+      console.error(`❌ Docker run failed:`)
+      if (error.stdout) {
+        console.error("Container stdout:", error.stdout)
+      }
+      if (error.stderr) {
+        console.error("Container stderr:", error.stderr)
+      }
+      console.error("Error details:", error.message || error)
+      throw error
+    }
 
     await this.waitForContainerReady(port)
   }
@@ -88,20 +79,23 @@ export class DockerWrangler {
       throw new Error("No container is currently running")
     }
 
-    // Stop the container gracefully
-    await new Promise<void>((resolve, reject) => {
-      const stopProcess = spawn("docker", ["stop", this.containerId!], {
-        stdio: "pipe",
-      })
-      stopProcess.on("close", (code) => {
-        if (code === 0) {
-          resolve()
-        } else {
-          console.error(`❌ Docker stop failed with code ${code}`)
-          reject(new Error(`Docker stop failed with code ${code}`))
-        }
-      })
-    })
+    const command = `docker stop ${this.containerId}`
+    console.log("Docker stop command:", command)
+
+    try {
+      await execAsync(command)
+      console.log("🛑 Container stopped successfully")
+    } catch (error: any) {
+      console.error(`❌ Docker stop failed:`)
+      if (error.stdout) {
+        console.error("Stop stdout:", error.stdout)
+      }
+      if (error.stderr) {
+        console.error("Stop stderr:", error.stderr)
+      }
+      console.error("Error details:", error.message || error)
+      throw error
+    }
 
     this.containerId = undefined
   }
