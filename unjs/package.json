@@ -7,13 +7,14 @@
     "essence-framework": "dist/cli.js"
   },
   "scripts": {
-    "test": "jest",
+    "test": "jest --runInBand",
     "build": "tsc",
     "dev": "tsx src/cli.ts",
     "lint": "prettier --check .",
     "lint:fix": "prettier --write ."
   },
   "devDependencies": {
+    "@types/chokidar": "^1.7.5",
     "@types/jest": "^29.5.0",
     "@types/node": "^20.0.0",
     "jest": "^29.5.0",
@@ -27,6 +28,7 @@
     "testEnvironment": "node"
   },
   "dependencies": {
+    "chokidar": "^4.0.3",
     "h3": "^1.15.3",
     "jiti": "^2.4.0",
     "nano-jsx": "^0.1.0"

@@ -5,6 +5,16 @@ export interface LoadedModule {
   [key: string]: any
 }
 
+// Create jiti instance at module evaluation time with caching disabled
+const jiti = createJiti(__filename, {
+  moduleCache: false, // Disable caching so modules are always fresh
+  jsx: {
+    runtime: "classic",
+    pragma: "__ESSENCE_PROVIDED_NANO__H__",
+    pragmaFrag: "__ESSENCE_PROVIDED_NANO__FRAGMENT__",
+  },
+})
+
 /**
  * Loads and transpiles TypeScript/JavaScript/JSX files at runtime
  * with support for nano-jsx SSR rendering
@@ -12,15 +22,6 @@ export interface LoadedModule {
 export async function loadEndpointModule(
   filePath: string,
 ): Promise<LoadedModule> {
-  // Use jiti for runtime TypeScript transpilation with JSX support
-  const jiti = createJiti(__filename, {
-    jsx: {
-      runtime: "classic",
-      pragma: "__ESSENCE_PROVIDED_NANO__H__",
-      pragmaFrag: "__ESSENCE_PROVIDED_NANO__FRAGMENT__",
-    },
-  })
-
   return await jiti.import<LoadedModule>(filePath)
 }
 

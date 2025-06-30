@@ -13,7 +13,15 @@ export class DockerWrangler {
     return new Promise<void>((resolve, reject) => {
       const buildProcess = spawn(
         "docker",
-        ["build", "--no-cache", "-t", this.imageName, "-f", "test/e2e/Dockerfile", "."],
+        [
+          "build",
+          "--no-cache",
+          "-t",
+          this.imageName,
+          "-f",
+          "test/e2e/Dockerfile",
+          ".",
+        ],
         {
           stdio: "pipe",
           cwd: dockerfilePath,
@@ -34,6 +42,7 @@ export class DockerWrangler {
     port: number,
     volumeMount?: string,
     sourceDir = "/test-app",
+    additionalArgs: string[] = [],
   ): Promise<void> {
     const args = ["run", "-d", "--init", "-p", `${port}:${port}`]
 
@@ -41,7 +50,9 @@ export class DockerWrangler {
       args.push("-v", volumeMount)
     }
 
-    args.push(this.imageName, sourceDir)
+    args.push(...additionalArgs, this.imageName, sourceDir)
+
+    console.log("Docker command:", ["docker", ...args].join(" "))
 
     // Run container in detached mode and capture container ID
     const containerProcess = spawn("docker", args, { stdio: "pipe" })
@@ -60,7 +71,9 @@ export class DockerWrangler {
           )
           resolve()
         } else {
-          console.error(`❌ Docker run failed with code ${code}`)
+          console.error(
+            `❌ Docker run failed with code ${code}. To view logs: docker logs ${containerIdOutput.trim()}`,
+          )
           reject(new Error(`Docker run failed with code ${code}`))
         }
       })
