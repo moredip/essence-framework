@@ -37,7 +37,8 @@ export class DockerWrangler {
     }
   }
 
-  async startContainer(localSourcePath?: string): Promise<void> {
+  async startContainer(options: { localSourcePath?: string; additionalArgs?: string[] } = {}): Promise<void> {
+    const { localSourcePath, additionalArgs = [] } = options
     const args = ["run", "-d", "--init", "-P"] // Publish all exposed ports to random host ports
     const containerSourcePath = "/test-app"
 
@@ -45,7 +46,7 @@ export class DockerWrangler {
       args.push("-v", `${localSourcePath}:${containerSourcePath}`)
     }
 
-    args.push(this.imageName, containerSourcePath)
+    args.push(this.imageName, containerSourcePath, ...additionalArgs)
 
     const command = `docker ${args.join(" ")}`
     console.log("Docker run command:", command)
