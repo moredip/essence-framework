@@ -30,8 +30,8 @@ describe("isolated end-to-end tests", () => {
   }
 
   beforeAll(async () => {
-    docker = new DockerWrangler("essence-test")
-    await docker.buildImage(path.join(__dirname, "../.."))
+    docker = new DockerWrangler()
+    await docker.buildImage()
     await docker.startContainer(
       3000,
       `${path.join(__dirname, "fixtures/basic-app")}:/test-app`,

@@ -1,33 +1,37 @@
-import { spawn } from "node:child_process"
+import { spawn, exec } from "node:child_process"
+import { promisify } from "node:util"
 import http from "node:http"
+import path from "node:path"
+
+const execAsync = promisify(exec)
+const PROJECT_ROOT = path.join(__dirname, "../..")
+const DOCKERFILE_PATH = path.relative(PROJECT_ROOT, path.join(__dirname, "Dockerfile"))
 
 export class DockerWrangler {
   private containerId?: string
   private imageName: string
 
-  constructor(imageName: string) {
+  constructor(imageName: string = "essence-e2e-test-image") {
     this.imageName = imageName
   }
 
-  async buildImage(dockerfilePath: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      const buildProcess = spawn(
-        "docker",
-        ["build", "--no-cache", "-t", this.imageName, "-f", "test/e2e/Dockerfile", "."],
-        {
-          stdio: "pipe",
-          cwd: dockerfilePath,
-        },
-      )
-      buildProcess.on("close", (code) => {
-        if (code === 0) {
-          resolve()
-        } else {
-          console.error(`❌ Docker build failed with code ${code}`)
-          reject(new Error(`Docker build failed with code ${code}`))
-        }
-      })
-    })
+  async buildImage(): Promise<void> {
+    const command = `docker build --no-cache -t ${this.imageName} -f ${DOCKERFILE_PATH} .`
+    console.log(`Building Docker image: ${command}`)
+    
+    try {
+      await execAsync(command, { cwd: PROJECT_ROOT })
+    } catch (error: any) {
+      console.error(`❌ Docker build failed:`)
+      if (error.stdout) {
+        console.error("Build stdout:", error.stdout)
+      }
+      if (error.stderr) {
+        console.error("Build stderr:", error.stderr)
+      }
+      console.error("Error details:", error.message || error)
+      throw error
+    }
   }
 
   async startContainer(
@@ -43,12 +47,20 @@ export class DockerWrangler {
 
     args.push(this.imageName, sourceDir)
 
+    console.log("Docker run command:", ["docker", ...args].join(" "))
+
     // Run container in detached mode and capture container ID
     const containerProcess = spawn("docker", args, { stdio: "pipe" })
 
     let containerIdOutput = ""
+    let containerStderr = ""
+    
     containerProcess.stdout?.on("data", (data) => {
       containerIdOutput += data.toString()
+    })
+
+    containerProcess.stderr?.on("data", (data) => {
+      containerStderr += data.toString()
     })
 
     await new Promise<void>((resolve, reject) => {
@@ -61,6 +73,8 @@ export class DockerWrangler {
           resolve()
         } else {
           console.error(`❌ Docker run failed with code ${code}`)
+          console.error("Container stderr:", containerStderr)
+          console.error("Container stdout:", containerIdOutput)
           reject(new Error(`Docker run failed with code ${code}`))
         }
       })
