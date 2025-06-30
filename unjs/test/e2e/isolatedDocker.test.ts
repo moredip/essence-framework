@@ -7,7 +7,9 @@ describe("isolated end-to-end tests", () => {
   beforeAll(async () => {
     docker = new DockerWrangler()
     await docker.buildImage()
-    await docker.startContainer({ localSourcePath: path.join(__dirname, "fixtures/basic-app") })
+    await docker.startContainer({
+      localSourcePath: path.join(__dirname, "fixtures/basic-app"),
+    })
   }, 30000)
 
   afterAll(async () => {

@@ -23,7 +23,7 @@ npx essence-framework ./src
 
 - **Zero Boilerplate** - Write a simple functions, get APIs. No setup, no config files, no routing tables
 - **Zero Configuration** - File-based routing with convention over configuration
-- **TypeScript & JSX Support** - Automatic runtime compilation of TypeScript and JSX/TSX 
+- **TypeScript & JSX Support** - Automatic runtime compilation of TypeScript and JSX/TSX
 - **Multiple Response Types** - Return strings, objects (JSON), JSX (HTML), binary. Drop down to raw Response objects if you need.
 - **Hot Reload** - Automatic file watching and route rebuilding during development
 - **Simple API** - Export functions named after HTTP methods (`GET`, `POST`, etc.)
@@ -36,7 +36,7 @@ Your file structure becomes your API:
 ```
 src/
 ├── index.js          → GET /
-├── hello.js          → GET /hello  
+├── hello.js          → GET /hello
 ├── contact.js        → GET,POST /contact
 └── users/
     ├── index.js      → GET,POST /users
@@ -46,14 +46,16 @@ src/
 ## Handler Examples
 
 ### Simple Text Response
+
 ```javascript
 // src/index.js
-export default function() {
+export default function () {
   return "Hello, world!"
 }
 ```
 
 ### JSON API
+
 ```javascript
 // src/api/users.js
 export const GET = () => {
@@ -68,6 +70,7 @@ export const POST = ({ context }) => {
 ```
 
 ### HTML with JSX
+
 ```tsx
 // src/contact.tsx
 export const GET = () => {
@@ -82,12 +85,13 @@ export const GET = () => {
 
 export const POST = ({ context }) => {
   const { formData } = context
-  console.log('Form submission:', formData)
+  console.log("Form submission:", formData)
   return <h1>Thanks for your message!</h1>
 }
 ```
 
 ### Dynamic Routes
+
 ```javascript
 // src/users/[id].js
 export const GET = ({ context }) => {
@@ -103,14 +107,14 @@ Every handler receives a context object with:
 ```javascript
 export const GET = ({ context }) => {
   const {
-    headers,      // Request headers
-    cookies,      // Parsed cookies  
-    query,        // Query parameters
-    pathParams,   // Dynamic route segments
-    body,         // Parsed request body
-    formData      // HTML form submissions
+    headers, // Request headers
+    cookies, // Parsed cookies
+    query, // Query parameters
+    pathParams, // Dynamic route segments
+    body, // Parsed request body
+    formData, // HTML form submissions
   } = context
-  
+
   return { received: body }
 }
 ```
@@ -134,11 +138,13 @@ npx essence-framework ./my-api-dir
 ## Development
 
 ### Installation
+
 ```bash
 npm install
 ```
 
 ### Scripts
+
 ```bash
 npm run dev      # Start development server
 npm run build    # Build TypeScript
@@ -161,7 +167,7 @@ File watching is enabled by default in development and can be controlled via CLI
 
 For detailed technical design and implementation notes, see [DESIGN.md](./DESIGN.md).
 
-- **Runtime**: Built on h3 (UnJS HTTP framework) 
+- **Runtime**: Built on h3 (UnJS HTTP framework)
 - **Transpilation**: Uses jiti for TypeScript/JSX runtime compilation
 - **File Watching**: chokidar for efficient file system monitoring
 - **SSR**: nano-jsx for server-side JSX rendering
@@ -176,13 +182,13 @@ npm test
 
 ## Response Types
 
-| Return Type | Content-Type | Example |
-|-------------|--------------|---------|
-| `string` | `text/plain` | `"Hello world"` |
-| `object` | `application/json` | `{ message: "Hi" }` |
-| `JSX` | `text/html` | `<h1>Welcome</h1>` |
-| `Response` | Custom | `new Response("Custom", { status: 201 })` |
+| Return Type | Content-Type       | Example                                   |
+| ----------- | ------------------ | ----------------------------------------- |
+| `string`    | `text/plain`       | `"Hello world"`                           |
+| `object`    | `application/json` | `{ message: "Hi" }`                       |
+| `JSX`       | `text/html`        | `<h1>Welcome</h1>`                        |
+| `Response`  | Custom             | `new Response("Custom", { status: 201 })` |
 
 ---
 
-*Essence Framework - Write functions, get APIs* ✨
+_Essence Framework - Write functions, get APIs_ ✨

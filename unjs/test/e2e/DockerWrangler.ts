@@ -37,7 +37,9 @@ export class DockerWrangler {
     }
   }
 
-  async startContainer(options: { localSourcePath?: string; additionalArgs?: string[] } = {}): Promise<void> {
+  async startContainer(
+    options: { localSourcePath?: string; additionalArgs?: string[] } = {},
+  ): Promise<void> {
     const { localSourcePath, additionalArgs = [] } = options
     const args = ["run", "-d", "--init", "-P"] // Publish all exposed ports to random host ports
     const containerSourcePath = "/test-app"

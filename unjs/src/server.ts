@@ -7,11 +7,14 @@ import { createEndpointHandler } from "./endpointAdapter"
 import { type HttpMethods, type HttpMethodsLowercase } from "./types"
 import { FileWatcher } from "./fileWatcher"
 
-export async function boot(sourceDir: string, options: { watch?: boolean } = {}) {
+export async function boot(
+  sourceDir: string,
+  options: { watch?: boolean } = {},
+) {
   await setupJSXRuntime()
 
   const absoluteSourceDir = path.resolve(sourceDir)
-  
+
   // Create h3 app
   const app = createApp()
   let currentRouter = await createRouterFromDirectory(absoluteSourceDir)
@@ -22,18 +25,18 @@ export async function boot(sourceDir: string, options: { watch?: boolean } = {})
   // Set up file watcher if enabled
   if (options.watch !== false) {
     const watcher = new FileWatcher(absoluteSourceDir)
-    
+
     watcher.on("changes", async () => {
       try {
         console.log("🔄 Rebuilding routes...")
-        
+
         // Rebuild router (jiti caching is disabled so modules will be fresh)
         const newRouter = await createRouterFromDirectory(absoluteSourceDir)
-        
+
         // Atomically swap the router
         app.stack.length = 0 // Clear existing middleware
         app.use(newRouter)
-        
+
         console.log("✅ Routes updated successfully")
       } catch (error) {
         console.error("❌ Failed to update routes:", error)
@@ -55,7 +58,9 @@ export async function boot(sourceDir: string, options: { watch?: boolean } = {})
   server.listen(3000, () => {
     console.log("🚀 Server running on http://localhost:3000")
     if (options.watch !== false) {
-      console.log("👀 File watching enabled - changes will be applied automatically")
+      console.log(
+        "👀 File watching enabled - changes will be applied automatically",
+      )
     }
   })
 

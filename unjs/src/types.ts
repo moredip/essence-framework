@@ -3,7 +3,7 @@
  */
 export const HTTP_METHODS = [
   "GET",
-  "POST", 
+  "POST",
   "PUT",
   "DELETE",
   "PATCH",
