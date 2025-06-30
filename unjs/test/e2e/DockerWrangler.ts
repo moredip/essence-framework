@@ -1,85 +1,76 @@
-import { spawn } from "node:child_process"
-import http from "node:http"
+import { exec } from "node:child_process"
+import { promisify } from "node:util"
+import path from "node:path"
+
+const execAsync = promisify(exec)
+const PROJECT_ROOT = path.join(__dirname, "../..")
+const DOCKERFILE_PATH = path.relative(
+  PROJECT_ROOT,
+  path.join(__dirname, "Dockerfile"),
+)
 
 export class DockerWrangler {
   private containerId?: string
   private imageName: string
+  private assignedPort?: number
 
-  constructor(imageName: string) {
+  constructor(imageName: string = "essence-e2e-test-image") {
     this.imageName = imageName
   }
 
-  async buildImage(dockerfilePath: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      const buildProcess = spawn(
-        "docker",
-        [
-          "build",
-          "--no-cache",
-          "-t",
-          this.imageName,
-          "-f",
-          "test/e2e/Dockerfile",
-          ".",
-        ],
-        {
-          stdio: "pipe",
-          cwd: dockerfilePath,
-        },
-      )
-      buildProcess.on("close", (code) => {
-        if (code === 0) {
-          resolve()
-        } else {
-          console.error(`❌ Docker build failed with code ${code}`)
-          reject(new Error(`Docker build failed with code ${code}`))
-        }
-      })
-    })
+  async buildImage(): Promise<void> {
+    const command = `docker build --no-cache -t ${this.imageName} -f ${DOCKERFILE_PATH} .`
+    console.log(`Building Docker image: ${command}`)
+
+    try {
+      await execAsync(command, { cwd: PROJECT_ROOT })
+    } catch (error: any) {
+      console.error(`❌ Docker build failed:`)
+      if (error.stdout) {
+        console.error("Build stdout:", error.stdout)
+      }
+      if (error.stderr) {
+        console.error("Build stderr:", error.stderr)
+      }
+      console.error("Error details:", error.message || error)
+      throw error
+    }
   }
 
-  async startContainer(
-    port: number,
-    volumeMount?: string,
-    sourceDir = "/test-app",
-    additionalArgs: string[] = [],
-  ): Promise<void> {
-    const args = ["run", "-d", "--init", "-p", `${port}:${port}`]
+  async startContainer(localSourcePath?: string): Promise<void> {
+    const args = ["run", "-d", "--init", "-P"] // Publish all exposed ports to random host ports
+    const containerSourcePath = "/test-app"
 
-    if (volumeMount) {
-      args.push("-v", volumeMount)
+    if (localSourcePath) {
+      args.push("-v", `${localSourcePath}:${containerSourcePath}`)
     }
 
-    args.push(...additionalArgs, this.imageName, sourceDir)
+    args.push(this.imageName, containerSourcePath)
 
-    console.log("Docker command:", ["docker", ...args].join(" "))
+    const command = `docker ${args.join(" ")}`
+    console.log("Docker run command:", command)
 
-    // Run container in detached mode and capture container ID
-    const containerProcess = spawn("docker", args, { stdio: "pipe" })
+    try {
+      const { stdout } = await execAsync(command)
+      this.containerId = stdout.trim()
+      console.log(
+        `🐳 Container started. To view logs: docker logs ${this.containerId}`,
+      )
+    } catch (error: any) {
+      console.error(`❌ Docker run failed:`)
+      if (error.stdout) {
+        console.error("Container stdout:", error.stdout)
+      }
+      if (error.stderr) {
+        console.error("Container stderr:", error.stderr)
+      }
+      console.error("Error details:", error.message || error)
+      throw error
+    }
 
-    let containerIdOutput = ""
-    containerProcess.stdout?.on("data", (data) => {
-      containerIdOutput += data.toString()
-    })
-
-    await new Promise<void>((resolve, reject) => {
-      containerProcess.on("close", (code) => {
-        if (code === 0) {
-          this.containerId = containerIdOutput.trim()
-          console.log(
-            `🐳 Container started. To view logs: docker logs ${this.containerId}`,
-          )
-          resolve()
-        } else {
-          console.error(
-            `❌ Docker run failed with code ${code}. To view logs: docker logs ${containerIdOutput.trim()}`,
-          )
-          reject(new Error(`Docker run failed with code ${code}`))
-        }
-      })
-    })
-
-    await this.waitForContainerReady(port)
+    // Get the assigned port
+    await this.getAssignedPort()
+    await this.waitForContainerReady()
   }
 
   async stopContainer(): Promise<void> {
@@ -87,46 +78,61 @@ export class DockerWrangler {
       throw new Error("No container is currently running")
     }
 
-    // Stop the container gracefully
-    await new Promise<void>((resolve, reject) => {
-      const stopProcess = spawn("docker", ["stop", this.containerId!], {
-        stdio: "pipe",
-      })
-      stopProcess.on("close", (code) => {
-        if (code === 0) {
-          resolve()
-        } else {
-          console.error(`❌ Docker stop failed with code ${code}`)
-          reject(new Error(`Docker stop failed with code ${code}`))
-        }
-      })
-    })
+    const command = `docker stop ${this.containerId}`
+    console.log("Docker stop command:", command)
+
+    try {
+      await execAsync(command)
+      console.log("🛑 Container stopped successfully")
+    } catch (error: any) {
+      console.error(`❌ Docker stop failed:`)
+      if (error.stdout) {
+        console.error("Stop stdout:", error.stdout)
+      }
+      if (error.stderr) {
+        console.error("Stop stderr:", error.stderr)
+      }
+      console.error("Error details:", error.message || error)
+      throw error
+    }
 
     this.containerId = undefined
   }
 
-  private async waitForContainerReady(
-    port: number,
-    maxAttempts = 30,
-  ): Promise<void> {
+  private async getAssignedPort(): Promise<void> {
+    if (!this.containerId) {
+      throw new Error("No container is running")
+    }
+
+    const command = `docker port ${this.containerId} 3000`
+    try {
+      const { stdout } = await execAsync(command)
+      const portMapping = stdout.trim() // Format: "0.0.0.0:32768"
+      const port = parseInt(portMapping.split(":")[1])
+      this.assignedPort = port
+      console.log(`📡 Container port 3000 is mapped to host port ${port}`)
+    } catch (error: any) {
+      console.error(`❌ Failed to get assigned port:`)
+      if (error.stderr) {
+        console.error("Port stderr:", error.stderr)
+      }
+      throw error
+    }
+  }
+
+  async makeRequestToPath(path: string): Promise<Response> {
+    if (!this.assignedPort) {
+      throw new Error("Container not started or port not assigned")
+    }
+
+    const url = `http://localhost:${this.assignedPort}${path}`
+    return await fetch(url)
+  }
+
+  private async waitForContainerReady(maxAttempts = 30): Promise<void> {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        await new Promise<void>((resolve, reject) => {
-          const req = http.get(`http://localhost:${port}`, (_res) => {
-            // Any response (including 404, 500, etc.) means the server is up
-            resolve()
-          })
-
-          req.on("error", (err) => {
-            reject(err)
-          })
-
-          req.setTimeout(1000, () => {
-            req.destroy()
-            reject(new Error("Request timeout"))
-          })
-        })
-
+        await this.makeRequestToPath("/")
         // Success - container is ready
         return
       } catch (error) {
