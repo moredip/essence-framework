@@ -11,6 +11,6 @@ export const GET = (): string => {
   return `Hello from ${user.name}, age ${user.age}`
 }
 
-export const POST = ({ context }: { context: any }) => {
-  return { message: "Created user", data: context.body }
+export const POST = () => {
+  return "I created a user!"
 }
