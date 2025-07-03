@@ -204,6 +204,8 @@ async function extractHandlersFromFile(
         message: `Conflicting export: has both a default export and a GET export. Use either a default export OR a GET export, not both.`,
       })
       hasErrors = true
+      // Mark default as conflicting so we don't warn about it being unused
+      conflictingExports.add("default")
     } else {
       handlers.GET = module.default
       usedExports.add("default")
@@ -218,6 +220,8 @@ async function extractHandlersFromFile(
         message: `Conflicting export: has both a function export and a GET export. Use either a function export OR a GET export, not both.`,
       })
       hasErrors = true
+      // Note: for CommonJS function exports, we don't need to mark anything as conflicting
+      // since the entire module is the export and there are no named exports to warn about
     } else {
       handlers.GET = module
       // Don't add to usedExports since the entire module is the export

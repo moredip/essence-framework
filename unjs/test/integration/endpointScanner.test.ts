@@ -89,8 +89,12 @@ describe("endpointScanner integration", () => {
     const { routes, issues } = await scanSourceDirectory(conflictingFixtureDir)
 
     expect(routes.size).toBe(0)
-    
-    const errorIssues = issues.filter(issue => issue.severity === 'error')
+
+    // Should have zero warning issues
+    const warningIssues = issues.filter((issue) => issue.severity === "warn")
+    expect(warningIssues).toHaveLength(0)
+
+    const errorIssues = issues.filter((issue) => issue.severity === "error")
     expect(errorIssues).toHaveLength(1)
     expect(errorIssues[0]).toMatchObject({
       severity: "error",
@@ -131,12 +135,16 @@ describe("endpointScanner integration", () => {
     )
 
     expect(routes.size).toBe(0)
-    
-    const errorIssues = issues.filter(issue => issue.severity === 'error')
+
+    // Should have zero warning issues
+    const warningIssues = issues.filter((issue) => issue.severity === "warn")
+    expect(warningIssues).toHaveLength(0)
+
+    const errorIssues = issues.filter((issue) => issue.severity === "error")
     expect(errorIssues.length).toBeGreaterThanOrEqual(1)
-    expect(errorIssues.some(issue => 
-      issue.message.includes("Multiple exports")
-    )).toBe(true)
+    expect(
+      errorIssues.some((issue) => issue.message.includes("Multiple exports")),
+    ).toBe(true)
   })
 
   it("should handle index files mapping to parent directory route", async () => {
@@ -201,7 +209,7 @@ describe("endpointScanner integration", () => {
     ).toBe(true)
   })
 
-  it.todo("ignores files with an unrecognized extension")
+  it.todo("skips files with an unrecognized extension, but warns about them")
 
   it.todo("warns about exports with non-standard names")
 
