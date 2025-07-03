@@ -6,9 +6,9 @@ describe("endpointScanner integration", () => {
   const fixtureDir = path.join(__dirname, "fixtures", "simple")
 
   it("should scan directory and discover all expected routes", async () => {
-    const routeMap = await scanSourceDirectory(fixtureDir)
+    const { routes, issues } = await scanSourceDirectory(fixtureDir)
 
-    expect([...routeMap.keys()]).toIncludeSameMembers([
+    expect([...routes.keys()]).toIncludeSameMembers([
       "/default-export",
       "/hello",
       "/jsx-page",
@@ -17,12 +17,13 @@ describe("endpointScanner integration", () => {
       "/users",
       "/users/profile",
     ])
+    expect(issues).toBeEmpty()
   })
 
   it("should handle JS file with named export", async () => {
-    const routeMap = await scanSourceDirectory(fixtureDir)
+    const { routes } = await scanSourceDirectory(fixtureDir)
 
-    const helloRoute = routeMap.get("/hello")
+    const helloRoute = routes.get("/hello")
     expect(helloRoute).toMatchObject({
       sourcePath: "hello.js",
       routePath: "/hello",
@@ -34,9 +35,9 @@ describe("endpointScanner integration", () => {
   })
 
   it("should handle TypeScript file with multiple HTTP methods", async () => {
-    const routeMap = await scanSourceDirectory(fixtureDir)
+    const { routes } = await scanSourceDirectory(fixtureDir)
 
-    const typedRoute = routeMap.get("/typed")
+    const typedRoute = routes.get("/typed")
     expect(typedRoute).toMatchObject({
       sourcePath: "typed.ts",
       routePath: "/typed",
@@ -52,9 +53,9 @@ describe("endpointScanner integration", () => {
   })
 
   it("should handle TSX file with JSX return", async () => {
-    const routeMap = await scanSourceDirectory(fixtureDir)
+    const { routes } = await scanSourceDirectory(fixtureDir)
 
-    const jsxRoute = routeMap.get("/jsx-page")
+    const jsxRoute = routes.get("/jsx-page")
     expect(jsxRoute).toMatchObject({
       sourcePath: "jsx-page.tsx",
       routePath: "/jsx-page",
@@ -65,9 +66,9 @@ describe("endpointScanner integration", () => {
   })
 
   it("should handle default export mapped to GET", async () => {
-    const routeMap = await scanSourceDirectory(fixtureDir)
+    const { routes } = await scanSourceDirectory(fixtureDir)
 
-    const defaultRoute = routeMap.get("/default-export")
+    const defaultRoute = routes.get("/default-export")
     expect(defaultRoute).toMatchObject({
       sourcePath: "default-export.js",
       routePath: "/default-export",
@@ -85,15 +86,22 @@ describe("endpointScanner integration", () => {
       "conflicting-exports",
     )
 
-    await expect(scanSourceDirectory(conflictingFixtureDir)).rejects.toThrow(
-      "Conflicting export",
-    )
+    const { routes, issues } = await scanSourceDirectory(conflictingFixtureDir)
+
+    expect(routes.size).toBe(0)
+    
+    const errorIssues = issues.filter(issue => issue.severity === 'error')
+    expect(errorIssues).toHaveLength(1)
+    expect(errorIssues[0]).toMatchObject({
+      severity: "error",
+      message: expect.stringContaining("Conflicting export"),
+    })
   })
 
   it("should handle lowercase HTTP method names", async () => {
-    const routeMap = await scanSourceDirectory(fixtureDir)
+    const { routes } = await scanSourceDirectory(fixtureDir)
 
-    const lowercaseRoute = routeMap.get("/lowercase")
+    const lowercaseRoute = routes.get("/lowercase")
     expect(lowercaseRoute).toMatchObject({
       sourcePath: "lowercase.js",
       routePath: "/lowercase",
@@ -118,15 +126,23 @@ describe("endpointScanner integration", () => {
       "multiple-methods",
     )
 
-    await expect(
-      scanSourceDirectory(multipleMethodsFixtureDir),
-    ).rejects.toThrow("Multiple exports")
+    const { routes, issues } = await scanSourceDirectory(
+      multipleMethodsFixtureDir,
+    )
+
+    expect(routes.size).toBe(0)
+    
+    const errorIssues = issues.filter(issue => issue.severity === 'error')
+    expect(errorIssues.length).toBeGreaterThanOrEqual(1)
+    expect(errorIssues.some(issue => 
+      issue.message.includes("Multiple exports")
+    )).toBe(true)
   })
 
   it("should handle index files mapping to parent directory route", async () => {
-    const routeMap = await scanSourceDirectory(fixtureDir)
+    const { routes } = await scanSourceDirectory(fixtureDir)
 
-    const usersIndexRoute = routeMap.get("/users")
+    const usersIndexRoute = routes.get("/users")
     expect(usersIndexRoute).toMatchObject({
       sourcePath: "users/index.js",
       routePath: "/users",
@@ -141,9 +157,9 @@ describe("endpointScanner integration", () => {
   })
 
   it("should handle nested file routing", async () => {
-    const routeMap = await scanSourceDirectory(fixtureDir)
+    const { routes } = await scanSourceDirectory(fixtureDir)
 
-    const profileRoute = routeMap.get("/users/profile")
+    const profileRoute = routes.get("/users/profile")
     expect(profileRoute).toMatchObject({
       sourcePath: "users/profile.js",
       routePath: "/users/profile",
@@ -151,6 +167,38 @@ describe("endpointScanner integration", () => {
         GET: expect.toBeFunction(),
       }),
     })
+  })
+
+  it("should report multiple conflicting export errors in a single file", async () => {
+    const multiConflictFixtureDir = path.join(
+      __dirname,
+      "fixtures",
+      "multiple-methods",
+    )
+
+    const { routes, issues } = await scanSourceDirectory(
+      multiConflictFixtureDir,
+    )
+
+    // Should have no routes due to errors
+    expect(routes.size).toBe(0)
+
+    // Should have multiple error issues - one for GET/get conflict and one for PUT/put conflict
+    const errorIssues = issues.filter((issue) => issue.severity === "error")
+    expect(errorIssues.length).toBeGreaterThanOrEqual(2)
+
+    // Should have zero warning issues
+    const warningIssues = issues.filter((issue) => issue.severity === "warn")
+    expect(warningIssues).toHaveLength(0)
+
+    // Check that we have errors for both method conflicts
+    const messages = errorIssues.map((issue) => issue.message)
+    expect(
+      messages.some((msg) => msg.includes("GET") && msg.includes("get")),
+    ).toBe(true)
+    expect(
+      messages.some((msg) => msg.includes("PUT") && msg.includes("put")),
+    ).toBe(true)
   })
 
   it.todo("ignores files with an unrecognized extension")
@@ -162,16 +210,16 @@ describe("endpointScanner integration", () => {
   it("should handle commonJS modules with named and default exports", async () => {
     const commonjsFixtureDir = path.join(__dirname, "fixtures", "commonjs")
 
-    const routeMap = await scanSourceDirectory(commonjsFixtureDir)
+    const { routes } = await scanSourceDirectory(commonjsFixtureDir)
 
-    expect([...routeMap.keys()]).toIncludeSameMembers([
+    expect([...routes.keys()]).toIncludeSameMembers([
       "/cjs-named",
       "/cjs-default",
       "/cjs-mixed",
     ])
 
     // CommonJS named exports
-    const cjsNamedRoute = routeMap.get("/cjs-named")
+    const cjsNamedRoute = routes.get("/cjs-named")
     expect(cjsNamedRoute).toMatchObject({
       sourcePath: "cjs-named.js",
       routePath: "/cjs-named",
@@ -182,7 +230,7 @@ describe("endpointScanner integration", () => {
     })
 
     // CommonJS default export (should map to GET)
-    const cjsDefaultRoute = routeMap.get("/cjs-default")
+    const cjsDefaultRoute = routes.get("/cjs-default")
     expect(cjsDefaultRoute).toMatchObject({
       sourcePath: "cjs-default.js",
       routePath: "/cjs-default",
@@ -192,7 +240,7 @@ describe("endpointScanner integration", () => {
     })
 
     // Mixed CommonJS and ES6 exports in TypeScript
-    const cjsMixedRoute = routeMap.get("/cjs-mixed")
+    const cjsMixedRoute = routes.get("/cjs-mixed")
     expect(cjsMixedRoute).toMatchObject({
       sourcePath: "cjs-mixed.ts",
       routePath: "/cjs-mixed",

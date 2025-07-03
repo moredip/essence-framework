@@ -1,6 +1,6 @@
 import fs from "node:fs/promises"
 import path from "node:path"
-import { loadEndpointModule } from "./endpointLoader"
+import { LoadedModule, loadEndpointModule } from "./endpointLoader"
 import { HTTP_METHODS, type HttpMethods } from "./types"
 
 const SUPPORTED_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx"] as const
@@ -11,11 +11,21 @@ export interface RouteInfo {
   handlers: Partial<Record<HttpMethods, Function>>
 }
 
+export interface ScanIssue {
+  severity: "warn" | "error"
+  filePath: string
+  message: string
+}
+
+export interface ScanResult {
+  routes: Map<string, RouteInfo>
+  issues: ScanIssue[]
+}
+
 export async function scanSourceDirectory(
   sourceDir: string,
-): Promise<Map<string, RouteInfo>> {
+): Promise<ScanResult> {
   console.log(`Scanning source directory: ${sourceDir}`)
-  const routeMap = new Map<string, RouteInfo>()
 
   try {
     await fs.access(sourceDir)
@@ -23,15 +33,21 @@ export async function scanSourceDirectory(
     throw new Error(`Source directory does not exist: ${sourceDir}`)
   }
 
-  await scanDirectory(sourceDir, sourceDir, routeMap)
-  return routeMap
+  const { routes, issues } = await scanDirectory(sourceDir, sourceDir)
+  return { routes, issues }
+}
+
+interface ScanDirectoryResult {
+  routes: Map<string, RouteInfo>
+  issues: ScanIssue[]
 }
 
 async function scanDirectory(
   baseDir: string,
   currentDir: string,
-  routeMap: Map<string, RouteInfo>,
-) {
+): Promise<ScanDirectoryResult> {
+  const routes = new Map<string, RouteInfo>()
+  const issues: ScanIssue[] = []
   const entries = await fs.readdir(currentDir, { withFileTypes: true })
 
   for (const entry of entries) {
@@ -39,46 +55,69 @@ async function scanDirectory(
 
     if (entry.isDirectory()) {
       // Recursively scan subdirectories
-      await scanDirectory(baseDir, fullPath, routeMap)
+      const { routes: subRoutes, issues: subIssues } = await scanDirectory(
+        baseDir,
+        fullPath,
+      )
+      // Merge sub-directory results
+      for (const [path, route] of subRoutes) {
+        routes.set(path, route)
+      }
+      issues.push(...subIssues)
     } else if (entry.isFile()) {
       const ext = path.extname(entry.name)
 
       if (SUPPORTED_EXTENSIONS.includes(ext as any)) {
         // Process TypeScript/TSX/JavaScript/JSX files
-        const routeInfo = await createRouteInfo(baseDir, fullPath)
+        const { routeInfo, issues: fileIssues } = await createRouteInfo(
+          baseDir,
+          fullPath,
+        )
         if (routeInfo) {
-          routeMap.set(routeInfo.routePath, routeInfo)
+          routes.set(routeInfo.routePath, routeInfo)
         }
+        issues.push(...fileIssues)
       } else {
         // Warn about unrecognized file extensions
         if (ext && !entry.name.startsWith(".")) {
-          console.warn(`Skipping file with unrecognized extension: ${fullPath}`)
+          issues.push({
+            severity: "warn",
+            filePath: fullPath,
+            message: `Skipping file with unrecognized extension: ${fullPath}`,
+          })
         }
       }
     }
   }
+
+  return { routes, issues }
+}
+
+interface CreateRouteInfoResult {
+  routeInfo: RouteInfo | null
+  issues: ScanIssue[]
 }
 
 async function createRouteInfo(
   baseDir: string,
   filePath: string,
-): Promise<RouteInfo | null> {
-  // Convert file path to route path
+): Promise<CreateRouteInfoResult> {
   const relativePath = path.relative(baseDir, filePath)
   const routePath = filePathToRoutePath(relativePath)
 
-  // Extract handlers from file
-  const handlers = await extractHandlersFromFile(filePath)
+  const { handlers, issues } = await extractHandlersFromFile(filePath)
 
   if (Object.keys(handlers).length === 0) {
-    return null // Skip files with no HTTP method exports
+    return { routeInfo: null, issues } // Skip files with no HTTP method exports
   }
 
-  return {
+  const routeInfo: RouteInfo = {
     sourcePath: relativePath,
     routePath,
     handlers,
   }
+
+  return { routeInfo, issues }
 }
 
 function filePathToRoutePath(relativePath: string): string {
@@ -94,80 +133,132 @@ function filePathToRoutePath(relativePath: string): string {
   return routePath
 }
 
+interface ExtractHandlersResult {
+  handlers: Partial<Record<HttpMethods, Function>>
+  issues: ScanIssue[]
+}
+
 async function extractHandlersFromFile(
   filePath: string,
-): Promise<Partial<Record<HttpMethods, Function>>> {
+): Promise<ExtractHandlersResult> {
+  let module: LoadedModule
   try {
-    const module = await loadEndpointModule(filePath)
-    const handlers: Partial<Record<HttpMethods, Function>> = {}
-    const usedExports = new Set<string>()
+    module = await loadEndpointModule(filePath)
+  } catch (error) {
+    const issues: ScanIssue[] = [
+      {
+        severity: "warn",
+        filePath,
+        message: `Failed to require file ${filePath}: ${error}`,
+      },
+    ]
+    return { handlers: {}, issues }
+  }
 
-    // Check for HTTP method exports (both uppercase and lowercase)
-    for (const method of HTTP_METHODS) {
-      const lowercaseMethod = method.toLowerCase()
-      const hasUppercase =
-        module[method] && typeof module[method] === "function"
-      const hasLowercase =
-        module[lowercaseMethod] && typeof module[lowercaseMethod] === "function"
+  // TODO: this implementation is a bit of a hot mess; loads of
+  // special cases and error handling. It has really solid test coverage;
+  // we should refactor it with tests as a safety net.
 
-      // Check for conflicting case exports
-      if (hasUppercase && hasLowercase) {
-        throw new Error(
-          `Multiple exports for same HTTP method: module ${filePath} has both '${method}' and '${lowercaseMethod}' exports. Use only one case format.`,
-        )
-      }
+  const handlers: Partial<Record<HttpMethods, Function>> = {}
+  const usedExports = new Set<string>()
+  const conflictingExports = new Set<string>()
+  const issues: ScanIssue[] = []
+  let hasErrors = false
 
-      if (hasUppercase) {
-        handlers[method] = module[method]
-        usedExports.add(method)
-      } else if (hasLowercase) {
-        handlers[method] = module[lowercaseMethod]
-        usedExports.add(lowercaseMethod)
-      }
+  // Check for HTTP method exports (both uppercase and lowercase)
+  for (const method of HTTP_METHODS) {
+    const lowercaseMethod = method.toLowerCase()
+    const hasUppercase = module[method] && typeof module[method] === "function"
+    const hasLowercase =
+      module[lowercaseMethod] && typeof module[lowercaseMethod] === "function"
+
+    // Check for conflicting case exports
+    if (hasUppercase && hasLowercase) {
+      issues.push({
+        severity: "error",
+        filePath,
+        message: `Multiple exports for same HTTP method: has both '${method}' and '${lowercaseMethod}' exports. Use only one case format.`,
+      })
+      hasErrors = true
+      // Mark both conflicting exports so we don't warn about them being unused
+      conflictingExports.add(method)
+      conflictingExports.add(lowercaseMethod)
+      continue // Continue checking other methods for more errors
     }
 
-    // Check for default export (treat as GET)
-    if (module.default && typeof module.default === "function") {
-      if (handlers.GET) {
-        throw new Error(
-          `Conflicting export: module ${filePath} has both a default export and a GET export. Use either a default export OR a GET export, not both.`,
-        )
-      }
+    if (hasUppercase) {
+      handlers[method] = module[method]
+      usedExports.add(method)
+    } else if (hasLowercase) {
+      handlers[method] = module[lowercaseMethod]
+      usedExports.add(lowercaseMethod)
+    }
+  }
+
+  // Check for default export (treat as GET)
+  if (module.default && typeof module.default === "function") {
+    if (handlers.GET) {
+      issues.push({
+        severity: "error",
+        filePath,
+        message: `Conflicting export: has both a default export and a GET export. Use either a default export OR a GET export, not both.`,
+      })
+      hasErrors = true
+    } else {
       handlers.GET = module.default
       usedExports.add("default")
     }
-    // Check for CommonJS module.exports = function() (entire module is a function)
-    else if (typeof module === "function" && Object.keys(module).length === 0) {
-      if (handlers.GET) {
-        throw new Error(
-          `Conflicting export: module ${filePath} has both a function export and a GET export. Use either a function export OR a GET export, not both.`,
-        )
-      }
+  }
+  // Check for CommonJS module.exports = function() (entire module is a function)
+  else if (typeof module === "function" && Object.keys(module).length === 0) {
+    if (handlers.GET) {
+      issues.push({
+        severity: "error",
+        filePath,
+        message: `Conflicting export: has both a function export and a GET export. Use either a function export OR a GET export, not both.`,
+      })
+      hasErrors = true
+    } else {
       handlers.GET = module
       // Don't add to usedExports since the entire module is the export
     }
+  }
 
-    // Warn about unused exports (only for user files, not node_modules)
+  // If we found errors, return empty handlers but continue to warn about unused exports
+  if (hasErrors) {
+    // Still warn about unused exports even if there are errors, but exclude conflicting exports
     const allExports = Object.keys(module)
     for (const exportName of allExports) {
-      if (!usedExports.has(exportName) && exportName !== "__esModule") {
-        console.warn(
-          `Unused export '${exportName}' in ${filePath} - only HTTP method functions are used as handlers`,
-        )
+      if (
+        !usedExports.has(exportName) &&
+        !conflictingExports.has(exportName) &&
+        exportName !== "__esModule"
+      ) {
+        issues.push({
+          severity: "warn",
+          filePath,
+          message: `Unused export '${exportName}' - only HTTP method functions are used as handlers`,
+        })
       }
     }
-
-    return handlers
-  } catch (error) {
-    // Re-throw validation errors (like conflicting exports)
-    if (
-      error instanceof Error &&
-      (error.message.includes("Conflicting export") ||
-        error.message.includes("Multiple exports"))
-    ) {
-      throw error
-    }
-    console.warn(`Failed to require file ${filePath}:`, error)
-    return {}
+    return { handlers: {}, issues }
   }
+
+  // Warn about unused exports (only for user files, not node_modules)
+  const allExports = Object.keys(module)
+  for (const exportName of allExports) {
+    if (
+      !usedExports.has(exportName) &&
+      !conflictingExports.has(exportName) &&
+      exportName !== "__esModule"
+    ) {
+      issues.push({
+        severity: "warn",
+        filePath,
+        message: `Unused export '${exportName}' - only HTTP method functions are used as handlers`,
+      })
+    }
+  }
+
+  return { handlers, issues }
 }

@@ -68,7 +68,19 @@ export async function boot(
 }
 
 async function createRouterFromDirectory(sourceDir: string) {
-  const routeMap = await scanSourceDirectory(sourceDir)
+  const { routes: routeMap, issues } = await scanSourceDirectory(sourceDir)
+
+  for (const issue of issues) {
+    if (issue.severity === "error") {
+      console.error(`ERROR: ${issue.message}`)
+    } else {
+      console.warn(`WARNING: ${issue.message}`)
+    }
+  }
+
+  if (issues.some((issue) => issue.severity === "error")) {
+    throw new Error("Failed to create router: error(s) found")
+  }
 
   console.log("📍 Route map:")
   for (const [routePath, routeInfo] of routeMap) {
