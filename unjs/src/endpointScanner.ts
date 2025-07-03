@@ -264,5 +264,16 @@ async function extractHandlersFromFile(
     }
   }
 
+  // Check if module has no exports at all (only __esModule doesn't count)
+  const hasAnyRealExports = allExports.length > 0 && !allExports.every(key => key === "__esModule")
+  
+  if (!hasAnyRealExports) {
+    issues.push({
+      severity: 'warn',
+      filePath,
+      message: 'Module has no exports - only HTTP method functions are used as handlers'
+    })
+  }
+
   return { handlers, issues }
 }

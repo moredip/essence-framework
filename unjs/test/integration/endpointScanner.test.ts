@@ -13,11 +13,14 @@ describe("endpointScanner integration", () => {
       "/hello",
       "/jsx-page",
       "/lowercase",
+      "/non-standard-exports",
       "/typed",
       "/users",
       "/users/profile",
     ])
-    expect(issues).toBeEmpty()
+
+    const errorIssues = issues.filter((issue) => issue.severity === "error")
+    expect(errorIssues).toHaveLength(0)
   })
 
   it("should handle JS file with named export", async () => {
@@ -211,9 +214,54 @@ describe("endpointScanner integration", () => {
 
   it.todo("skips files with an unrecognized extension, but warns about them")
 
-  it.todo("warns about exports with non-standard names")
+  it.todo("errors out if an export is not a function")
 
-  it.todo("warns about modules with no exports")
+  it("warns about exports with non-standard names", async () => {
+    const { routes, issues } = await scanSourceDirectory(fixtureDir)
+
+    // Should still create route for the valid HTTP method
+    const nonStandardRoute = routes.get("/non-standard-exports")
+    expect(nonStandardRoute).toMatchObject({
+      sourcePath: "non-standard-exports.js",
+      routePath: "/non-standard-exports",
+      handlers: expect.objectContaining({
+        GET: expect.toBeFunction(),
+      }),
+    })
+
+    const warningMessages = issues
+      .filter(
+        (issue) =>
+          issue.severity === "warn" &&
+          issue.filePath.includes("non-standard-exports.js"),
+      )
+      .map((issue) => issue.message)
+
+    expect(warningMessages.length).toEqual(3)
+    expect(warningMessages).toSatisfyAll(
+      (message) =>
+        message.includes("someHelper") ||
+        message.includes("config") ||
+        message.includes("INVALID_METHOD"),
+    )
+  })
+
+  it("warns about modules with no exports", async () => {
+    const { routes, issues } = await scanSourceDirectory(fixtureDir)
+
+    // Should not create a route for the file with no exports
+    expect(routes.has("/no-exports")).toBe(false)
+
+    // Should warn about files with no exports
+    const noExportsIssues = issues.filter((issue) =>
+      issue.filePath.includes("no-exports.js"),
+    )
+    expect(noExportsIssues).toHaveLength(1)
+    expect(noExportsIssues[0]).toMatchObject({
+      severity: "warn",
+      message: "Module has no exports - only HTTP method functions are used as handlers"
+    })
+  })
 
   it("should handle commonJS modules with named and default exports", async () => {
     const commonjsFixtureDir = path.join(__dirname, "fixtures", "commonjs")
