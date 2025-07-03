@@ -12,6 +12,7 @@ describe("endpointScanner integration", () => {
       "/default-export",
       "/hello",
       "/jsx-page",
+      "/lowercase",
       "/typed",
       "/users",
       "/users/profile",
@@ -85,8 +86,41 @@ describe("endpointScanner integration", () => {
     )
 
     await expect(scanSourceDirectory(conflictingFixtureDir)).rejects.toThrow(
-      "Conflicting export"
+      "Conflicting export",
     )
+  })
+
+  it("should handle lowercase HTTP method names", async () => {
+    const routeMap = await scanSourceDirectory(fixtureDir)
+
+    const lowercaseRoute = routeMap.get("/lowercase")
+    expect(lowercaseRoute).toMatchObject({
+      sourcePath: "lowercase.js",
+      routePath: "/lowercase",
+      handlers: expect.objectContaining({
+        GET: expect.toBeFunction(),
+        POST: expect.toBeFunction(),
+        PUT: expect.toBeFunction(),
+      }),
+    })
+
+    expect(lowercaseRoute?.handlers.GET?.()).toBe("Hello from lowercase get")
+    expect(lowercaseRoute?.handlers.POST?.()).toBe(
+      "Created from lowercase post",
+    )
+    expect(lowercaseRoute?.handlers.PUT?.()).toBe("Updated from lowercase put")
+  })
+
+  it("should fail when a module has multiple exports for the same HTTP method", async () => {
+    const multipleMethodsFixtureDir = path.join(
+      __dirname,
+      "fixtures",
+      "multiple-methods",
+    )
+
+    await expect(
+      scanSourceDirectory(multipleMethodsFixtureDir),
+    ).rejects.toThrow("Multiple exports")
   })
 
   it("should handle index files mapping to parent directory route", async () => {
@@ -119,13 +153,13 @@ describe("endpointScanner integration", () => {
     })
   })
 
-  it.todo("handles lower case method names")
-
   it.todo("ignores files with an unrecognized extension")
 
   it.todo("warns about exports with non-standard names")
 
   it.todo("warns about modules with no exports")
 
-  it.todo("handles commonJS modules with named exports (.js and .ts)")
+  it.todo(
+    "handles commonJS modules with named and default exports (.js and .ts)",
+  )
 })

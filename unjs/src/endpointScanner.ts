@@ -102,11 +102,27 @@ async function extractHandlersFromFile(
     const handlers: Partial<Record<HttpMethods, Function>> = {}
     const usedExports = new Set<string>()
 
-    // Check for HTTP method exports
+    // Check for HTTP method exports (both uppercase and lowercase)
     for (const method of HTTP_METHODS) {
-      if (module[method] && typeof module[method] === "function") {
+      const lowercaseMethod = method.toLowerCase()
+      const hasUppercase =
+        module[method] && typeof module[method] === "function"
+      const hasLowercase =
+        module[lowercaseMethod] && typeof module[lowercaseMethod] === "function"
+
+      // Check for conflicting case exports
+      if (hasUppercase && hasLowercase) {
+        throw new Error(
+          `Multiple exports for same HTTP method: module ${filePath} has both '${method}' and '${lowercaseMethod}' exports. Use only one case format.`,
+        )
+      }
+
+      if (hasUppercase) {
         handlers[method] = module[method]
         usedExports.add(method)
+      } else if (hasLowercase) {
+        handlers[method] = module[lowercaseMethod]
+        usedExports.add(lowercaseMethod)
       }
     }
 
@@ -136,7 +152,8 @@ async function extractHandlersFromFile(
     // Re-throw validation errors (like conflicting exports)
     if (
       error instanceof Error &&
-      error.message.includes("Conflicting export")
+      (error.message.includes("Conflicting export") ||
+        error.message.includes("Multiple exports"))
     ) {
       throw error
     }
