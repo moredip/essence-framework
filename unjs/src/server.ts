@@ -1,7 +1,7 @@
 import { createApp, createRouter, toNodeListener } from "h3"
 import { createServer } from "node:http"
 import path from "node:path"
-import { scanSourceDirectory } from "./endpointScanner"
+import { scanSourceDirectory, RouteInfo, ScanIssue } from "./endpointScanner"
 import { setupJSXRuntime } from "./endpointLoader"
 import { createEndpointHandler } from "./endpointAdapter"
 import { type HttpMethods, type HttpMethodsLowercase } from "./types"
@@ -67,29 +67,49 @@ export async function boot(
   return server
 }
 
+function reportScannerOutcomes(
+  sourceDir: string,
+  routes: Map<string, RouteInfo>,
+  issues: ScanIssue[],
+) {
+  // Log all errors first
+  const errors = issues.filter((issue) => issue.severity === "error")
+  for (const issue of errors) {
+    const relativePath = path.join(
+      path.basename(sourceDir),
+      path.relative(sourceDir, issue.filePath),
+    )
+    console.error(`ERROR: ${relativePath}: ${issue.message}`)
+  }
+
+  // Then log all warnings
+  const warnings = issues.filter((issue) => issue.severity === "warn")
+  for (const issue of warnings) {
+    const relativePath = path.join(
+      path.basename(sourceDir),
+      path.relative(sourceDir, issue.filePath),
+    )
+    console.warn(`WARNING: ${relativePath}: ${issue.message}`)
+  }
+
+  // Log route map
+  console.log("\n📍 Route map:")
+  for (const [routePath, routeInfo] of routes) {
+    console.log(
+      `  [${Object.keys(routeInfo.handlers).join(", ")}] ${routePath} (${routeInfo.sourcePath})`,
+    )
+  }
+}
+
 async function createRouterFromDirectory(sourceDir: string) {
   const { routes: routeMap, issues } = await scanSourceDirectory(sourceDir)
 
-  for (const issue of issues) {
-    if (issue.severity === "error") {
-      console.error(`ERROR: ${issue.message}`)
-    } else {
-      console.warn(`WARNING: ${issue.message}`)
-    }
-  }
+  reportScannerOutcomes(sourceDir, routeMap, issues)
 
   if (issues.some((issue) => issue.severity === "error")) {
     throw new Error("Failed to create router: error(s) found")
   }
 
-  console.log("📍 Route map:")
-  for (const [routePath, routeInfo] of routeMap) {
-    console.log(
-      `  [${Object.keys(routeInfo.handlers).join(", ")}] ${routePath} (${routeInfo.sourcePath})`,
-    )
-  }
-
-  // Create h3 router
   const router = createRouter()
 
   // Register routes from route map
