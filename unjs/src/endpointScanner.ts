@@ -25,8 +25,6 @@ export interface ScanResult {
 export async function scanSourceDirectory(
   sourceDir: string,
 ): Promise<ScanResult> {
-  console.log(`Scanning source directory: ${sourceDir}`)
-
   try {
     await fs.access(sourceDir)
   } catch {
@@ -265,13 +263,15 @@ async function extractHandlersFromFile(
   }
 
   // Check if module has no exports at all (only __esModule doesn't count)
-  const hasAnyRealExports = allExports.length > 0 && !allExports.every(key => key === "__esModule")
-  
+  const hasAnyRealExports =
+    allExports.length > 0 && !allExports.every((key) => key === "__esModule")
+
   if (!hasAnyRealExports) {
     issues.push({
-      severity: 'warn',
+      severity: "warn",
       filePath,
-      message: 'Module has no exports - only HTTP method functions are used as handlers'
+      message:
+        "Module has no exports - only HTTP method functions are used as handlers",
     })
   }
 
