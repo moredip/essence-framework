@@ -136,6 +136,16 @@ async function extractHandlersFromFile(
       handlers.GET = module.default
       usedExports.add("default")
     }
+    // Check for CommonJS module.exports = function() (entire module is a function)
+    else if (typeof module === "function" && Object.keys(module).length === 0) {
+      if (handlers.GET) {
+        throw new Error(
+          `Conflicting export: module ${filePath} has both a function export and a GET export. Use either a function export OR a GET export, not both.`,
+        )
+      }
+      handlers.GET = module
+      // Don't add to usedExports since the entire module is the export
+    }
 
     // Warn about unused exports (only for user files, not node_modules)
     const allExports = Object.keys(module)

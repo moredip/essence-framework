@@ -159,7 +159,57 @@ describe("endpointScanner integration", () => {
 
   it.todo("warns about modules with no exports")
 
-  it.todo(
-    "handles commonJS modules with named and default exports (.js and .ts)",
-  )
+  it("should handle commonJS modules with named and default exports", async () => {
+    const commonjsFixtureDir = path.join(__dirname, "fixtures", "commonjs")
+
+    const routeMap = await scanSourceDirectory(commonjsFixtureDir)
+
+    expect([...routeMap.keys()]).toIncludeSameMembers([
+      "/cjs-named",
+      "/cjs-default",
+      "/cjs-mixed",
+    ])
+
+    // CommonJS named exports
+    const cjsNamedRoute = routeMap.get("/cjs-named")
+    expect(cjsNamedRoute).toMatchObject({
+      sourcePath: "cjs-named.js",
+      routePath: "/cjs-named",
+      handlers: expect.objectContaining({
+        GET: expect.toBeFunction(),
+        POST: expect.toBeFunction(),
+      }),
+    })
+
+    // CommonJS default export (should map to GET)
+    const cjsDefaultRoute = routeMap.get("/cjs-default")
+    expect(cjsDefaultRoute).toMatchObject({
+      sourcePath: "cjs-default.js",
+      routePath: "/cjs-default",
+      handlers: expect.objectContaining({
+        GET: expect.toBeFunction(),
+      }),
+    })
+
+    // Mixed CommonJS and ES6 exports in TypeScript
+    const cjsMixedRoute = routeMap.get("/cjs-mixed")
+    expect(cjsMixedRoute).toMatchObject({
+      sourcePath: "cjs-mixed.ts",
+      routePath: "/cjs-mixed",
+      handlers: expect.objectContaining({
+        GET: expect.toBeFunction(),
+        POST: expect.toBeFunction(),
+        PUT: expect.toBeFunction(),
+      }),
+    })
+    expect(cjsMixedRoute?.handlers.GET?.()).toBe(
+      "Hello from TypeScript CommonJS GET",
+    )
+    expect(cjsMixedRoute?.handlers.POST?.()).toBe(
+      "Hello from TypeScript ES6 POST",
+    )
+    expect(cjsMixedRoute?.handlers.PUT?.()).toBe(
+      "Hello from TypeScript CommonJS PUT",
+    )
+  })
 })
