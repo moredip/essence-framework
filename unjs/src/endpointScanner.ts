@@ -112,10 +112,13 @@ async function extractHandlersFromFile(
 
     // Check for default export (treat as GET)
     if (module.default && typeof module.default === "function") {
-      if (!handlers.GET) {
-        handlers.GET = module.default
-        usedExports.add("default")
+      if (handlers.GET) {
+        throw new Error(
+          `Conflicting export: module ${filePath} has both a default export and a GET export. Use either a default export OR a GET export, not both.`,
+        )
       }
+      handlers.GET = module.default
+      usedExports.add("default")
     }
 
     // Warn about unused exports (only for user files, not node_modules)
@@ -130,6 +133,13 @@ async function extractHandlersFromFile(
 
     return handlers
   } catch (error) {
+    // Re-throw validation errors (like conflicting exports)
+    if (
+      error instanceof Error &&
+      error.message.includes("Conflicting export")
+    ) {
+      throw error
+    }
     console.warn(`Failed to require file ${filePath}:`, error)
     return {}
   }

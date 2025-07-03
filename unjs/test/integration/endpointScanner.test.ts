@@ -77,7 +77,17 @@ describe("endpointScanner integration", () => {
     expect(defaultRoute?.handlers.GET?.()).toBe("Hello from default export")
   })
 
-  it.todo("fails hard if a module has both a default export and a GET export")
+  it("should fail when a module has both a default export and a GET export", async () => {
+    const conflictingFixtureDir = path.join(
+      __dirname,
+      "fixtures",
+      "conflicting-exports",
+    )
+
+    await expect(scanSourceDirectory(conflictingFixtureDir)).rejects.toThrow(
+      "Conflicting export"
+    )
+  })
 
   it("should handle index files mapping to parent directory route", async () => {
     const routeMap = await scanSourceDirectory(fixtureDir)
@@ -116,4 +126,6 @@ describe("endpointScanner integration", () => {
   it.todo("warns about exports with non-standard names")
 
   it.todo("warns about modules with no exports")
+
+  it.todo("handles commonJS modules with named exports (.js and .ts)")
 })
