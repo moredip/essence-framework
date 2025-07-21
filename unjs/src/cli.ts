@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { boot } from "./server"
+import { boot } from "./server.js"
 
 const args = process.argv.slice(2)
 const sourceDir = args.find((arg) => !arg.startsWith("--")) || "./"

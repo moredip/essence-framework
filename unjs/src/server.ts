@@ -1,11 +1,11 @@
 import { createApp, createRouter, toNodeListener } from "h3"
 import { createServer } from "node:http"
 import path from "node:path"
-import { scanSourceDirectory, RouteInfo, ScanIssue } from "./endpointScanner"
-import { setupJSXRuntime } from "./endpointLoader"
-import { createEndpointHandler } from "./endpointAdapter"
-import { type HttpMethods, type HttpMethodsLowercase } from "./types"
-import { FileWatcher } from "./fileWatcher"
+import { scanSourceDirectory, RouteInfo, ScanIssue } from "./endpointScanner.js"
+import { setupJSXRuntime } from "./endpointLoader.js"
+import { createEndpointHandler } from "./endpointAdapter.js"
+import { type HttpMethods, type HttpMethodsLowercase } from "./types.js"
+import { FileWatcher } from "./fileWatcher.js"
 
 export async function boot(
   sourceDir: string,

@@ -1,7 +1,7 @@
 import fs from "node:fs/promises"
 import path from "node:path"
-import { LoadedModule, loadEndpointModule } from "./endpointLoader"
-import { HTTP_METHODS, type HttpMethods } from "./types"
+import { LoadedModule, loadEndpointModule } from "./endpointLoader.js"
+import { HTTP_METHODS, type HttpMethods } from "./types.js"
 
 const SUPPORTED_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx"] as const
 
