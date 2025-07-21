@@ -1,4 +1,4 @@
-FROM node:22-alpine as package-builder
+FROM node:22-alpine AS package-builder
 WORKDIR /build
 
 # Copy package files and source
@@ -6,9 +6,9 @@ COPY package*.json ./
 COPY src/ ./src/
 COPY tsconfig.json ./
 
-RUN npm ci && npm run build &&npm pack
+RUN npm ci && npm run build && npm pack
 
-FROM node:22-alpine as runner
+FROM node:22-alpine AS runner
 WORKDIR /test-workspace
 
 # Copy and install the package from builder stage

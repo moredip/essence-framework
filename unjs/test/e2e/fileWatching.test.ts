@@ -1,7 +1,7 @@
 import path from "node:path"
 import fs from "node:fs/promises"
 import os from "node:os"
-import { DockerWrangler } from "./DockerWrangler"
+import { DockerWrangler } from "./DockerWrangler.js"
 
 describe("file watching functionality", () => {
   let docker: DockerWrangler
