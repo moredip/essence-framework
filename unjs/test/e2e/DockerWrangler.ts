@@ -1,8 +1,10 @@
 import { exec } from "node:child_process"
 import { promisify } from "node:util"
 import path from "node:path"
+import { fileURLToPath } from "node:url"
 
 const execAsync = promisify(exec)
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PROJECT_ROOT = path.join(__dirname, "../..")
 const DOCKERFILE_PATH = path.relative(
   PROJECT_ROOT,
@@ -19,7 +21,7 @@ export class DockerWrangler {
   }
 
   async buildImage(): Promise<void> {
-    const command = `docker build --no-cache -t ${this.imageName} -f ${DOCKERFILE_PATH} .`
+    const command = `docker build -t ${this.imageName} -f ${DOCKERFILE_PATH} .`
     console.log(`Building Docker image: ${command}`)
 
     try {

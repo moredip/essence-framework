@@ -4,14 +4,14 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "outDir": "dist",
-    "rootDir": "src",
     "strict": true,
+    "isolatedModules": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "jsx": "react-jsx"
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "test/**/*"],
   "exclude": ["node_modules", "dist"]
 }
