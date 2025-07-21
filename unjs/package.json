@@ -10,7 +10,6 @@
   "scripts": {
     "test": "jest --runInBand",
     "build": "tsc",
-    "dev": "tsx src/cli.ts",
     "lint": "prettier --check .",
     "lint:fix": "prettier --write ."
   },
