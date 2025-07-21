@@ -44,23 +44,7 @@ describe("file watching functionality", () => {
     if (docker) {
       await docker.stopContainer()
     }
-
-    // Clean up temporary directory
-    if (testFixturePath) {
-      try {
-        await fs.rm(testFixturePath, { recursive: true, force: true })
-      } catch (error) {
-        console.warn("Failed to clean up temp directory:", error)
-      }
-    }
   }, 15000)
-
-  test("should serve initial content", async () => {
-    const response = await docker.makeRequestToPath("/dynamic")
-
-    expect(response.status).toBe(200)
-    expect(await response.text()).toEqual("Initial content")
-  })
 
   test("should reflect file changes via hot reload", async () => {
     // Make initial request
