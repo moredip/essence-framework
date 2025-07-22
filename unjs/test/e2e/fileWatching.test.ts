@@ -36,7 +36,7 @@ describe("file watching functionality", () => {
     await docker.buildImage()
     await docker.startContainer({
       localSourcePath: testFixturePath,
-      additionalArgs: ["--watch"],
+      devMode: true,
     })
   }, 45000)
 

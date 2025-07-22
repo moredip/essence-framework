@@ -39,18 +39,21 @@ export class DockerWrangler {
     }
   }
 
-  async startContainer(
-    options: { localSourcePath?: string; additionalArgs?: string[] } = {},
-  ): Promise<void> {
-    const { localSourcePath, additionalArgs = [] } = options
+  async startContainer(options: {
+    localSourcePath: string
+    devMode?: boolean
+  }): Promise<void> {
+    const { localSourcePath, devMode = false } = options
     const args = ["run", "-d", "--init", "-P"] // Publish all exposed ports to random host ports
     const containerSourcePath = "/test-app"
 
-    if (localSourcePath) {
-      args.push("-v", `${localSourcePath}:${containerSourcePath}`)
+    args.push("-v", `${localSourcePath}:${containerSourcePath}`)
+
+    if (devMode) {
+      args.push("-e", "NODE_ENV=development")
     }
 
-    args.push(this.imageName, containerSourcePath, ...additionalArgs)
+    args.push(this.imageName, containerSourcePath)
 
     const command = `docker ${args.join(" ")}`
     console.log("Docker run command:", command)
