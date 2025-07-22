@@ -1,6 +1,7 @@
 import { createApp, createRouter, toNodeListener } from "h3"
 import { createServer } from "node:http"
 import path from "node:path"
+import openBrowser from "react-dev-utils/openBrowser.js"
 import { scanSourceDirectory, RouteInfo, ScanIssue } from "./endpointScanner.js"
 import { setupJSXRuntime } from "./endpointLoader.js"
 import { createEndpointHandler } from "./endpointAdapter.js"
@@ -8,10 +9,13 @@ import { type HttpMethods, type HttpMethodsLowercase } from "./types.js"
 import { FileWatcher } from "./fileWatcher.js"
 import { refreshDevConsole } from "./devConsole.js"
 
-export async function boot(
-  sourceDir: string,
-  options: { watch: boolean; console: boolean },
-) {
+export type ServerOptions = {
+  watch: boolean
+  console: boolean
+  openBrowser: boolean
+}
+
+export async function boot(sourceDir: string, options: ServerOptions) {
   await setupJSXRuntime()
 
   const absoluteSourceDir = path.resolve(sourceDir)
@@ -42,6 +46,10 @@ export async function boot(
           "👀 File watching enabled - changes will be applied automatically",
         )
       }
+    }
+
+    if (options.openBrowser) {
+      openBrowser(serverUrl)
     }
   })
 

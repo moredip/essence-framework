@@ -18,6 +18,8 @@ RUN npm install /tmp/essence-framework-*.tgz
 # Expose port
 EXPOSE 3000
 
+ENV NODE_ENV=production
+
 # Use npx to run the framework
 ENTRYPOINT ["npx", "essence-framework"]
 
