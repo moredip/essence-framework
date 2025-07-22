@@ -24,8 +24,6 @@ export class FileWatcher extends EventEmitter {
       return // Already watching
     }
 
-    console.log(`👀 Watching ${this.sourceDir} for changes...`)
-
     this.watcher = chokidar.watch(this.sourceDir, {
       ignored: [
         "**/node_modules/**",

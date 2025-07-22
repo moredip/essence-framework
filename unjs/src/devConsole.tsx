@@ -1,6 +1,70 @@
 import React from "react"
-import { render, Box, Text } from "ink"
+import { render, Box, Text, Newline } from "ink"
 import { RouteInfo, ScanIssue } from "./endpointScanner.js"
+
+const SplashLogo: React.FC = () => (
+  <Box
+    borderColor="cyan"
+    borderStyle="round"
+    padding={1}
+    paddingX={8}
+    flexDirection="column"
+    alignItems="center"
+  >
+    <Text>{"⊹   ⊹    ⊹"}</Text>
+    <Text bold color="cyanBright">
+      {"⊰ Essence Dev Server ⊱"}
+    </Text>
+    <Text>{"⊹     ⊹  ⊹"}</Text>
+  </Box>
+)
+
+interface RouteMapProps {
+  routes: Map<string, RouteInfo>
+  sourceDir: string
+}
+
+const RouteMap: React.FC<RouteMapProps> = ({ routes, sourceDir }) => {
+  const routeEntries = Array.from(routes.entries())
+
+  return (
+    <Box
+      alignSelf="flex-start"
+      marginLeft={2}
+      marginY={2}
+      flexDirection="column"
+      alignItems="flex-start"
+    >
+      <Text bold color="yellow">
+        Routes
+      </Text>
+      <Box
+        flexDirection="column"
+        borderStyle="round"
+        borderColor="yellow"
+        paddingLeft={1}
+        paddingRight={3}
+      >
+        {routeEntries.length === 0 ? (
+          <Text dimColor>No routes found</Text>
+        ) : (
+          routeEntries.map(([routePath, routeInfo]) => (
+            <Box key={routePath} marginLeft={1}>
+              <Text color="green">
+                [{Object.keys(routeInfo.handlers).join(", ")}]
+              </Text>
+              <Text> {routePath} </Text>
+              <Text dimColor>({routeInfo.sourcePath})</Text>
+            </Box>
+          ))
+        )}
+      </Box>
+      <Text dimColor italic>
+        source: {sourceDir}
+      </Text>
+    </Box>
+  )
+}
 
 export interface DevConsoleState {
   routes: Map<string, RouteInfo>
@@ -15,35 +79,19 @@ const DevConsole: React.FC<DevConsoleState> = ({
   sourceDir,
   serverUrl,
 }) => {
-  // Convert routes Map to array for easier rendering
-  const routeEntries = Array.from(routes.entries())
-
   return (
     <Box flexDirection="column" padding={1}>
-      <Text bold color="cyan">
-        🚀 Essence Framework Dev Console
-      </Text>
-      <Text dimColor>Source directory: {sourceDir}</Text>
-
-      <Box marginTop={1} flexDirection="column">
-        <Text bold color="yellow">
-          📍 Route Map ({routeEntries.length} routes)
+      <Box alignItems="center" flexDirection="column" margin={1}>
+        <SplashLogo />
+        <Text italic dimColor>
+          running on
         </Text>
-
-        {routeEntries.length === 0 ? (
-          <Text dimColor>No routes found</Text>
-        ) : (
-          routeEntries.map(([routePath, routeInfo]) => (
-            <Box key={routePath} marginLeft={2}>
-              <Text color="green">
-                [{Object.keys(routeInfo.handlers).join(", ")}]
-              </Text>
-              <Text> {routePath} </Text>
-              <Text dimColor>({routeInfo.sourcePath})</Text>
-            </Box>
-          ))
-        )}
+        <Text italic dimColor>
+          {serverUrl}
+        </Text>
       </Box>
+
+      <RouteMap routes={routes} sourceDir={sourceDir} />
 
       {issues.length > 0 && (
         <Box marginTop={1} flexDirection="column">
@@ -63,10 +111,6 @@ const DevConsole: React.FC<DevConsoleState> = ({
           ))}
         </Box>
       )}
-
-      <Box marginTop={1}>
-        <Text dimColor>Server running on {serverUrl}</Text>
-      </Box>
     </Box>
   )
 }
