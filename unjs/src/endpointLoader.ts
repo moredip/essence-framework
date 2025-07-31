@@ -1,6 +1,10 @@
 import { createJiti } from "jiti"
 import { h, renderSSR, Fragment } from "nano-jsx"
 
+import { fileURLToPath } from "url"
+
+const __filename = fileURLToPath(import.meta.url)
+
 export interface LoadedModule {
   [key: string]: any
 }

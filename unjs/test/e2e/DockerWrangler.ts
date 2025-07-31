@@ -1,8 +1,10 @@
 import { exec } from "node:child_process"
 import { promisify } from "node:util"
 import path from "node:path"
+import { fileURLToPath } from "node:url"
 
 const execAsync = promisify(exec)
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PROJECT_ROOT = path.join(__dirname, "../..")
 const DOCKERFILE_PATH = path.relative(
   PROJECT_ROOT,
@@ -19,7 +21,7 @@ export class DockerWrangler {
   }
 
   async buildImage(): Promise<void> {
-    const command = `docker build --no-cache -t ${this.imageName} -f ${DOCKERFILE_PATH} .`
+    const command = `docker build -t ${this.imageName} -f ${DOCKERFILE_PATH} .`
     console.log(`Building Docker image: ${command}`)
 
     try {
@@ -37,18 +39,21 @@ export class DockerWrangler {
     }
   }
 
-  async startContainer(
-    options: { localSourcePath?: string; additionalArgs?: string[] } = {},
-  ): Promise<void> {
-    const { localSourcePath, additionalArgs = [] } = options
+  async startContainer(options: {
+    localSourcePath: string
+    devMode?: boolean
+  }): Promise<void> {
+    const { localSourcePath, devMode = false } = options
     const args = ["run", "-d", "--init", "-P"] // Publish all exposed ports to random host ports
     const containerSourcePath = "/test-app"
 
-    if (localSourcePath) {
-      args.push("-v", `${localSourcePath}:${containerSourcePath}`)
+    args.push("-v", `${localSourcePath}:${containerSourcePath}`)
+
+    if (devMode) {
+      args.push("-e", "NODE_ENV=development")
     }
 
-    args.push(this.imageName, containerSourcePath, ...additionalArgs)
+    args.push(this.imageName, containerSourcePath)
 
     const command = `docker ${args.join(" ")}`
     console.log("Docker run command:", command)

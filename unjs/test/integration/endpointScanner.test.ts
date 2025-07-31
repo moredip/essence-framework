@@ -1,6 +1,9 @@
 import path from "node:path"
-import { scanSourceDirectory } from "../../src/endpointScanner"
+import { fileURLToPath } from "node:url"
+import { scanSourceDirectory } from "../../src/endpointScanner.js"
 import "jest-extended"
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 describe("endpointScanner integration", () => {
   const fixtureDir = path.join(__dirname, "fixtures", "simple")
@@ -259,7 +262,8 @@ describe("endpointScanner integration", () => {
     expect(noExportsIssues).toHaveLength(1)
     expect(noExportsIssues[0]).toMatchObject({
       severity: "warn",
-      message: "Module has no exports - only HTTP method functions are used as handlers"
+      message:
+        "Module has no exports - only HTTP method functions are used as handlers",
     })
   })
 

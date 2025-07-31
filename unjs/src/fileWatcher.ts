@@ -24,8 +24,6 @@ export class FileWatcher extends EventEmitter {
       return // Already watching
     }
 
-    console.log(`👀 Watching ${this.sourceDir} for changes...`)
-
     this.watcher = chokidar.watch(this.sourceDir, {
       ignored: [
         "**/node_modules/**",
@@ -72,12 +70,6 @@ export class FileWatcher extends EventEmitter {
     type: FileChangeEvent["type"],
     filePath: string,
   ): void {
-    // Only watch supported file extensions
-    const ext = path.extname(filePath)
-    if (![".ts", ".tsx", ".js", ".jsx"].includes(ext)) {
-      return
-    }
-
     // Add to pending changes
     this.pendingChanges.add(filePath)
 

@@ -1,20 +1,28 @@
 #!/usr/bin/env node
-import { boot } from "./server"
+import { boot, type ServerOptions } from "./server.js"
 
 const args = process.argv.slice(2)
-const sourceDir = args.find((arg) => !arg.startsWith("--")) || "./"
+const sourceDir = args[0] || "./"
 
-// Parse flags
-const watchFlag = args.includes("--watch") || args.includes("-w")
-const noWatchFlag = args.includes("--no-watch")
+const DEV_MODE_OPTIONS: ServerOptions = {
+  watch: true,
+  console: true,
+  openBrowser: true,
+}
 
-// Default to watching in development
-const shouldWatch = noWatchFlag
-  ? false
-  : watchFlag || process.env.NODE_ENV !== "production"
+const PRODUCTION_OPTIONS: ServerOptions = {
+  watch: false,
+  console: false,
+  openBrowser: false,
+}
 
-console.log(`🚀 Starting Essence Framework`)
-console.log(`📁 Source directory: ${sourceDir}`)
-console.log(`👀 File watching: ${shouldWatch ? "enabled" : "disabled"}`)
+const isProduction = process.env.NODE_ENV === "production"
 
-boot(sourceDir, { watch: shouldWatch }).catch(console.error)
+const options = isProduction ? PRODUCTION_OPTIONS : DEV_MODE_OPTIONS
+
+if (!options.console) {
+  console.log(`🚀 Starting Essence Framework`)
+  console.log(`📁 Source directory: ${sourceDir}`)
+  console.log(`👀 File watching: ${options.watch ? "enabled" : "disabled"}`)
+}
+boot(sourceDir, options).catch(console.error)

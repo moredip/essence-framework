@@ -1,5 +1,8 @@
 import path from "node:path"
-import { DockerWrangler } from "./DockerWrangler"
+import { fileURLToPath } from "node:url"
+import { DockerWrangler } from "./DockerWrangler.js"
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 describe("isolated end-to-end tests", () => {
   let docker: DockerWrangler
