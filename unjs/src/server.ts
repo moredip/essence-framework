@@ -1,5 +1,5 @@
-import { createApp, createRouter, toNodeListener } from "h3"
-import { createServer } from "node:http"
+import { App, createApp, createRouter, toNodeListener } from "h3"
+import { createServer, Server } from "node:http"
 import path from "node:path"
 import openBrowser from "react-dev-utils/openBrowser.js"
 import { scanSourceDirectory, RouteInfo, ScanIssue } from "./endpointScanner.js"
@@ -22,16 +22,11 @@ export async function boot(sourceDir: string, options: ServerOptions) {
   const port = 3000
   const serverUrl = `http://localhost:${port}`
 
-  // Create h3 app
-  const app = createApp()
-  const routerResult = await createRouterFromDirectory(
+  const app = await createAppFromSourceDirectory(
     absoluteSourceDir,
     options.console,
     serverUrl,
   )
-  let currentRouter = routerResult.router
-  app.use(currentRouter)
-
   const server = createServer(toNodeListener(app))
 
   if (options.watch) {
@@ -58,9 +53,9 @@ export async function boot(sourceDir: string, options: ServerOptions) {
 
 function setupFileWatcher(
   absoluteSourceDir: string,
-  app: any,
+  app: App,
   useConsole: boolean,
-  server: any,
+  server: Server,
   serverUrl: string,
 ) {
   const watcher = new FileWatcher(absoluteSourceDir)
@@ -135,6 +130,23 @@ function reportScannerOutcomes(
       `  [${Object.keys(routeInfo.handlers).join(", ")}] ${routePath} (${routeInfo.sourcePath})`,
     )
   }
+}
+
+// exported only for testing purposes; not part of public API
+export async function createAppFromSourceDirectory(
+  absoluteSourceDir: string,
+  useConsole: boolean,
+  serverUrl: string,
+): Promise<App> {
+  const app = createApp()
+  const routerResult = await createRouterFromDirectory(
+    absoluteSourceDir,
+    useConsole,
+    serverUrl,
+  )
+  let currentRouter = routerResult.router
+  app.use(currentRouter)
+  return app
 }
 
 async function createRouterFromDirectory(

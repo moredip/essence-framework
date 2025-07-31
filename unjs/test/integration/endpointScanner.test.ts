@@ -17,6 +17,7 @@ describe("endpointScanner integration", () => {
       "/jsx-page",
       "/lowercase",
       "/non-standard-exports",
+      "/query-params",
       "/typed",
       "/users",
       "/users/profile",
@@ -320,4 +321,5 @@ describe("endpointScanner integration", () => {
       "Hello from TypeScript CommonJS PUT",
     )
   })
+
 })

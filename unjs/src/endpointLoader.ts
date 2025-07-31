@@ -1,3 +1,4 @@
+import assert from "assert"
 import { createJiti } from "jiti"
 import { h, renderSSR, Fragment } from "nano-jsx"
 
@@ -34,6 +35,10 @@ export async function loadEndpointModule(
  * Should be called once at application startup
  */
 export async function setupJSXRuntime(): Promise<void> {
+  // sanity check that we're not being called multiple times
+  assert((global as any).__ESSENCE_PROVIDED_NANO__H__ === undefined)
+  assert((global as any).__ESSENCE_PROVIDED_NANO__FRAGMENT__ === undefined)
+
   // hacky way to get nano to setup `global.document`, which needs to be done
   // before any JSX is loaded
   renderSSR(null)

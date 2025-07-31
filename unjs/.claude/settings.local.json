@@ -11,7 +11,8 @@
       "Bash(npm run lint:*)",
       "Bash(find:*)",
       "Bash(npm test:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(rm:*)"
     ],
     "deny": []
   }
