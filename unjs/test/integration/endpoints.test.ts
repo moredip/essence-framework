@@ -32,4 +32,27 @@ describe("endpoint integration tests", () => {
       allParams: { name: "Alice", age: "25" },
     })
   })
+
+  it("can handle array query parameters (tags=a&tags=b&tags=c)", async () => {
+    const app = await createAppFromSourceDirectory(
+      fixtureDir,
+      false,
+      "http://localhost:3000",
+    )
+    const plainHandler = toPlainHandler(app)
+
+    const request = {
+      method: "GET",
+      path: "/query-params?tags=javascript&tags=web&tags=dev&name=test",
+      headers: {},
+    }
+
+    const response = await plainHandler(request)
+
+    const responseBody = JSON.parse(response.body as string)
+    expect(responseBody["allParams"]).toEqual({
+      tags: ["javascript", "web", "dev"],
+      name: "test",
+    })
+  })
 })
