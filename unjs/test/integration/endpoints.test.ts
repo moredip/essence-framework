@@ -19,8 +19,7 @@ describe("endpoint integration tests", () => {
 
     const request = {
       method: "GET",
-      path: "/query-params",
-      query: "name=Alice&age=25",
+      path: "/query-params?name=Alice&age=25",
       headers: {},
     }
 

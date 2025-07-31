@@ -1,15 +1,22 @@
 import { renderSSR } from "nano-jsx"
-import { eventHandler, type EventHandler, type H3Event } from "h3"
+import { eventHandler, getQuery, type EventHandler, type H3Event } from "h3"
+import { type EndpointHandler, type EndpointContext } from "./types.js"
 
 /**
  * Converts an endpoint function into an h3-compatible event handler
  */
 export function createEndpointHandler(
-  endpointFunction: Function,
+  endpointFunction: EndpointHandler,
 ): EventHandler {
   return eventHandler(async (event) => {
     try {
-      const result = await endpointFunction()
+      const query = getQuery(event) as Record<string, string | string[]>
+
+      const context: EndpointContext = {
+        query: query,
+      }
+
+      const result = await endpointFunction(context)
       return await processResponse(result, event)
     } catch (error) {
       console.error(

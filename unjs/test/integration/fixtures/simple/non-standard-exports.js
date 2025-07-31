@@ -8,7 +8,7 @@ export function someHelper() {
 }
 
 export const config = {
-  timeout: 5000
+  timeout: 5000,
 }
 
 export const INVALID_METHOD = () => {

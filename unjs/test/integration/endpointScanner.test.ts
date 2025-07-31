@@ -321,5 +321,4 @@ describe("endpointScanner integration", () => {
       "Hello from TypeScript CommonJS PUT",
     )
   })
-
 })

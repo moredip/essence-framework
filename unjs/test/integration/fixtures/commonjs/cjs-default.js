@@ -1,4 +1,4 @@
 // CommonJS module with default export
-module.exports = function() {
+module.exports = function () {
   return "Hello from CommonJS default export"
 }

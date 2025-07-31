@@ -1,14 +1,18 @@
 import fs from "node:fs/promises"
 import path from "node:path"
 import { LoadedModule, loadEndpointModule } from "./endpointLoader.js"
-import { HTTP_METHODS, type HttpMethods } from "./types.js"
+import {
+  HTTP_METHODS,
+  type HttpMethods,
+  type EndpointHandler,
+} from "./types.js"
 
 const SUPPORTED_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx"] as const
 
 export interface RouteInfo {
   sourcePath: string
   routePath: string
-  handlers: Partial<Record<HttpMethods, Function>>
+  handlers: Partial<Record<HttpMethods, EndpointHandler>>
 }
 
 export interface ScanIssue {
@@ -132,7 +136,7 @@ function filePathToRoutePath(relativePath: string): string {
 }
 
 interface ExtractHandlersResult {
-  handlers: Partial<Record<HttpMethods, Function>>
+  handlers: Partial<Record<HttpMethods, EndpointHandler>>
   issues: ScanIssue[]
 }
 
@@ -157,7 +161,7 @@ async function extractHandlersFromFile(
   // special cases and error handling. It has really solid test coverage;
   // we should refactor it with tests as a safety net.
 
-  const handlers: Partial<Record<HttpMethods, Function>> = {}
+  const handlers: Partial<Record<HttpMethods, EndpointHandler>> = {}
   const usedExports = new Set<string>()
   const conflictingExports = new Set<string>()
   const issues: ScanIssue[] = []
@@ -185,10 +189,10 @@ async function extractHandlersFromFile(
     }
 
     if (hasUppercase) {
-      handlers[method] = module[method]
+      handlers[method] = module[method] as EndpointHandler
       usedExports.add(method)
     } else if (hasLowercase) {
-      handlers[method] = module[lowercaseMethod]
+      handlers[method] = module[lowercaseMethod] as EndpointHandler
       usedExports.add(lowercaseMethod)
     }
   }
@@ -205,7 +209,7 @@ async function extractHandlersFromFile(
       // Mark default as conflicting so we don't warn about it being unused
       conflictingExports.add("default")
     } else {
-      handlers.GET = module.default
+      handlers.GET = module.default as EndpointHandler
       usedExports.add("default")
     }
   }
@@ -221,7 +225,7 @@ async function extractHandlersFromFile(
       // Note: for CommonJS function exports, we don't need to mark anything as conflicting
       // since the entire module is the export and there are no named exports to warn about
     } else {
-      handlers.GET = module
+      handlers.GET = module as EndpointHandler
       // Don't add to usedExports since the entire module is the export
     }
   }
@@ -243,7 +247,10 @@ async function extractHandlersFromFile(
         })
       }
     }
-    return { handlers: {}, issues }
+    return {
+      handlers: {} as Partial<Record<HttpMethods, EndpointHandler>>,
+      issues,
+    }
   }
 
   // Warn about unused exports (only for user files, not node_modules)
